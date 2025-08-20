@@ -1,46 +1,60 @@
 {% extends "base.html" %}
 
-{% block title %}Upload Documents - Chemical Document Automation{% endblock %}
+{% block title %}Process Documents - Chemical Document Pro{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold mb-3">Process Chemical Documents</h1>
+        <p class="lead text-muted mb-0">Upload your supplier documents and transform them into professional, branded versions</p>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-lg-8">
+            <!-- Main Upload Form -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-upload me-2"></i>
-                        Upload Supplier Documents
-                    </h3>
+                    <h4 class="card-title">
+                        <i class="fas fa-upload me-2 text-primary"></i>
+                        Document Upload
+                    </h4>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted mb-4">
-                        Upload your supplier's three documents (COA, MSDS, TDS) and provide your company product name to generate branded versions.
-                    </p>
-
                     <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                        <!-- Product Name Input -->
                         <div class="mb-4">
                             <label for="company_product_name" class="form-label">
-                                <i class="fas fa-tag me-1"></i>
-                                Company Product Name <span class="text-danger">*</span>
+                                Product Name <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" id="company_product_name" name="company_product_name" 
-                                   placeholder="e.g., COSCARE-H ACID" required>
-                            <div class="form-text">Enter the name you want to use for your branded documents.</div>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="company_product_name" 
+                                   name="company_product_name" 
+                                   placeholder="e.g., COSCARE-H ACID" 
+                                   required>
+                            <div class="form-text">Enter your company's product name for branding</div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-4">
-                                <label for="supplier_coa" class="form-label">
-                                    <i class="fas fa-certificate text-warning me-1"></i>
-                                    Certificate of Analysis (COA) <span class="text-danger">*</span>
+                        <!-- Document Upload Areas -->
+                        <div class="row g-4 mb-4">
+                            <!-- COA Upload -->
+                            <div class="col-md-4">
+                                <label class="form-label d-flex align-items-center">
+                                    <i class="fas fa-certificate text-warning me-2"></i>
+                                    Certificate of Analysis (COA) <span class="text-danger ms-1">*</span>
                                 </label>
                                 <div class="upload-area" data-target="supplier_coa">
-                                    <input type="file" class="form-control file-input" id="supplier_coa" 
-                                           name="supplier_coa" accept=".pdf" required>
+                                    <input type="file" 
+                                           class="form-control file-input" 
+                                           id="supplier_coa" 
+                                           name="supplier_coa" 
+                                           accept=".pdf" 
+                                           required>
                                     <div class="upload-placeholder">
-                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
-                                        <p class="mt-2 mb-0">Click or drag COA PDF here</p>
+                                        <i class="fas fa-cloud-upload-alt fa-2x mb-3"></i>
+                                        <p class="mb-0 fw-medium">Drop COA file here</p>
+                                        <small class="text-muted">or click to browse</small>
                                     </div>
                                     <div class="file-info d-none">
                                         <i class="fas fa-file-pdf text-danger me-2"></i>
@@ -52,17 +66,23 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-4 mb-4">
-                                <label for="supplier_msds" class="form-label">
-                                    <i class="fas fa-shield-alt text-danger me-1"></i>
-                                    Material Safety Data Sheet (MSDS) <span class="text-danger">*</span>
+                            <!-- MSDS Upload -->
+                            <div class="col-md-4">
+                                <label class="form-label d-flex align-items-center">
+                                    <i class="fas fa-shield-alt text-danger me-2"></i>
+                                    Safety Data Sheet (MSDS) <span class="text-danger ms-1">*</span>
                                 </label>
                                 <div class="upload-area" data-target="supplier_msds">
-                                    <input type="file" class="form-control file-input" id="supplier_msds" 
-                                           name="supplier_msds" accept=".pdf" required>
+                                    <input type="file" 
+                                           class="form-control file-input" 
+                                           id="supplier_msds" 
+                                           name="supplier_msds" 
+                                           accept=".pdf" 
+                                           required>
                                     <div class="upload-placeholder">
-                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
-                                        <p class="mt-2 mb-0">Click or drag MSDS PDF here</p>
+                                        <i class="fas fa-cloud-upload-alt fa-2x mb-3"></i>
+                                        <p class="mb-0 fw-medium">Drop MSDS file here</p>
+                                        <small class="text-muted">or click to browse</small>
                                     </div>
                                     <div class="file-info d-none">
                                         <i class="fas fa-file-pdf text-danger me-2"></i>
@@ -74,17 +94,23 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-4 mb-4">
-                                <label for="supplier_tds" class="form-label">
-                                    <i class="fas fa-clipboard-list text-info me-1"></i>
-                                    Technical Data Sheet (TDS) <span class="text-danger">*</span>
+                            <!-- TDS Upload -->
+                            <div class="col-md-4">
+                                <label class="form-label d-flex align-items-center">
+                                    <i class="fas fa-clipboard-list text-info me-2"></i>
+                                    Technical Data Sheet (TDS) <span class="text-danger ms-1">*</span>
                                 </label>
                                 <div class="upload-area" data-target="supplier_tds">
-                                    <input type="file" class="form-control file-input" id="supplier_tds" 
-                                           name="supplier_tds" accept=".pdf" required>
+                                    <input type="file" 
+                                           class="form-control file-input" 
+                                           id="supplier_tds" 
+                                           name="supplier_tds" 
+                                           accept=".pdf" 
+                                           required>
                                     <div class="upload-placeholder">
-                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
-                                        <p class="mt-2 mb-0">Click or drag TDS PDF here</p>
+                                        <i class="fas fa-cloud-upload-alt fa-2x mb-3"></i>
+                                        <p class="mb-0 fw-medium">Drop TDS file here</p>
+                                        <small class="text-muted">or click to browse</small>
                                     </div>
                                     <div class="file-info d-none">
                                         <i class="fas fa-file-pdf text-danger me-2"></i>
@@ -97,14 +123,15 @@
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">
-                                <i class="fas fa-arrow-left me-1"></i>
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
                                 Back to Home
                             </a>
                             <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <span class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
-                                <i class="fas fa-magic me-1"></i>
+                                <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                                <i class="fas fa-magic me-2"></i>
                                 Process Documents
                             </button>
                         </div>
@@ -112,39 +139,91 @@
                 </div>
             </div>
 
+            <!-- Requirements Card -->
             <div class="card mt-4">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-question-circle me-2"></i>
-                        Requirements
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle me-2 text-info"></i>
+                        Requirements & Guidelines
                     </h5>
                 </div>
                 <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            All three documents (COA, MSDS, TDS) are required
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Files must be in PDF format
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Maximum file size: 16MB per document
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Documents should contain structured data (tables, specifications)
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Company product name will be used for branding
-                        </li>
-                    </ul>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-semibold mb-3">File Requirements</h6>
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
+                                <div>
+                                    <div class="fw-medium">PDF Format Only</div>
+                                    <small class="text-muted">All files must be in PDF format</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
+                                <div>
+                                    <div class="fw-medium">Size Limit: 16MB</div>
+                                    <small class="text-muted">Maximum file size per document</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
+                                <div>
+                                    <div class="fw-medium">All Three Required</div>
+                                    <small class="text-muted">COA, MSDS, and TDS documents</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-semibold mb-3">Content Quality</h6>
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
+                                <div>
+                                    <div class="fw-medium">Structured Data</div>
+                                    <small class="text-muted">Documents with clear tables and specifications</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
+                                <div>
+                                    <div class="fw-medium">Readable Text</div>
+                                    <small class="text-muted">Clear, high-quality scanned documents</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
+                                <div>
+                                    <div class="fw-medium">Complete Information</div>
+                                    <small class="text-muted">All necessary chemical and safety data</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Enhanced upload functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadForm = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Handle form submission
+    uploadForm.addEventListener('submit', function(e) {
+        const spinner = submitBtn.querySelector('.spinner-border');
+        const icon = submitBtn.querySelector('.fas');
+        
+        // Show loading state
+        spinner.classList.remove('d-none');
+        icon.classList.add('d-none');
+        submitBtn.disabled = true;
+    });
+    
+    // File upload enhancements are handled by existing upload.js
+});
+</script>
 {% endblock %}
