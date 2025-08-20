@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime
-from flask import render_template, request, redirect, url_for, flash, send_file, current_app
+from flask import render_template, request, redirect, url_for, flash, send_file, current_app, jsonify
 from werkzeug.utils import secure_filename
 from app import app, db
 from models import DocumentSet, TestResult
@@ -124,7 +124,7 @@ def upload():
             db.session.commit()
             
             flash('Documents processed successfully!', 'success')
-            return redirect(url_for('results', doc_set_id=doc_set.id))
+            return redirect(url_for('edit_preview', doc_set_id=doc_set.id))
             
         except Exception as e:
             db.session.rollback()
@@ -133,6 +133,138 @@ def upload():
             return redirect(request.url)
     
     return render_template('upload.html')
+
+@app.route('/edit/<int:doc_set_id>')  
+def edit_preview(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    return render_template('edit_preview.html', doc_set=doc_set, extracted_data=extracted_data)
+
+@app.route('/api/update-field/<int:doc_set_id>', methods=['POST'])
+def update_field(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    data = request.get_json()
+    
+    field_name = data.get('field_name')
+    field_value = data.get('field_value')
+    
+    # Update the field in the document set
+    if field_name == 'company_product_name':
+        doc_set.company_product_name = field_value
+    elif field_name == 'inci_name':
+        doc_set.inci_name = field_value
+    elif field_name == 'cas_number':
+        doc_set.cas_number = field_value
+    elif field_name == 'molecular_formula':
+        doc_set.molecular_formula = field_value
+    elif field_name == 'batch_number':
+        doc_set.batch_number = field_value
+    elif field_name == 'supplier_name':
+        doc_set.supplier_name = field_value
+    elif field_name in ['manufacturing_date', 'expiry_date']:
+        try:
+            date_value = datetime.strptime(field_value, '%Y-%m-%d').date()
+            if field_name == 'manufacturing_date':
+                doc_set.manufacturing_date = date_value
+            else:
+                doc_set.expiry_date = date_value
+        except ValueError:
+            return jsonify({'error': 'Invalid date format'}), 400
+    
+    # Update extracted_data JSON
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    extracted_data[field_name] = field_value
+    doc_set.extracted_data = json.dumps(extracted_data)
+    
+    db.session.commit()
+    
+    return jsonify({'success': True, 'field_name': field_name, 'field_value': field_value})
+
+@app.route('/api/preview/<int:doc_set_id>/<doc_type>')
+def preview_document(doc_set_id, doc_type):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    
+    try:
+        generator = DocumentGenerator()
+        
+        if doc_type == 'coa':
+            preview_path = generator.generate_preview_coa(doc_set, extracted_data)
+        elif doc_type == 'msds':
+            preview_path = generator.generate_preview_msds(doc_set, extracted_data)
+        elif doc_type == 'tds':
+            preview_path = generator.generate_preview_tds(doc_set, extracted_data)
+        else:
+            return jsonify({'error': 'Invalid document type'}), 400
+        
+        return send_file(preview_path, mimetype='application/pdf')
+        
+    except Exception as e:
+        current_app.logger.error(f"Error generating preview: {str(e)}")
+        return jsonify({'error': 'Preview generation failed'}), 500
+
+@app.route('/approve/<int:doc_set_id>', methods=['POST'])
+def approve_documents(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    
+    # Update document status (we'll add this field to the model)
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    extracted_data['status'] = 'approved'
+    extracted_data['approved_at'] = datetime.now().isoformat()
+    doc_set.extracted_data = json.dumps(extracted_data)
+    
+    db.session.commit()
+    
+    return redirect(url_for('sign_documents', doc_set_id=doc_set_id))
+
+@app.route('/sign/<int:doc_set_id>')
+def sign_documents(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    return render_template('sign_documents.html', doc_set=doc_set, extracted_data=extracted_data)
+
+@app.route('/finalize/<int:doc_set_id>', methods=['POST'])
+def finalize_documents(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    
+    # Get signature data from form
+    signature_name = request.form.get('signature_name', '').strip()
+    signature_title = request.form.get('signature_title', '').strip()
+    
+    if not signature_name or not signature_title:
+        flash('Please provide both signature name and title', 'error')
+        return redirect(url_for('sign_documents', doc_set_id=doc_set_id))
+    
+    # Update extracted data with signature
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    extracted_data['status'] = 'signed'
+    extracted_data['signed_at'] = datetime.now().isoformat()
+    extracted_data['signature'] = {
+        'name': signature_name,
+        'title': signature_title,
+        'date': datetime.now().strftime('%d-%m-%Y')
+    }
+    doc_set.extracted_data = json.dumps(extracted_data)
+    
+    # Regenerate documents with signature
+    try:
+        generator = DocumentGenerator()
+        generated_files = generator.generate_documents(doc_set, extracted_data)
+        
+        doc_set.generated_coa_path = generated_files.get('coa')
+        doc_set.generated_msds_path = generated_files.get('msds')
+        doc_set.generated_tds_path = generated_files.get('tds')
+        
+        db.session.commit()
+        
+        flash('Documents finalized and signed successfully!', 'success')
+        return redirect(url_for('results', doc_set_id=doc_set_id))
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error finalizing documents: {str(e)}")
+        flash(f'Error finalizing documents: {str(e)}', 'error')
+        return redirect(url_for('sign_documents', doc_set_id=doc_set_id))
 
 @app.route('/results/<int:doc_set_id>')
 def results(doc_set_id):

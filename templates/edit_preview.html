@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block title %}Edit & Preview - Chemical Document Automation{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Pipeline Progress -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="pipeline-progress">
+                        <div class="progress-step completed">
+                            <div class="step-icon">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <div class="step-label">Upload</div>
+                        </div>
+                        <div class="progress-step completed">
+                            <div class="step-icon">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <div class="step-label">Extract</div>
+                        </div>
+                        <div class="progress-step active">
+                            <div class="step-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="step-label">Edit & Preview</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="step-label">Approve</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-icon">
+                                <i class="fas fa-signature"></i>
+                            </div>
+                            <div class="step-label">Sign</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-icon">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="step-label">Export</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Panel: Edit Fields -->
+        <div class="col-md-4">
+            <div class="card sticky-top">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Edit Extracted Data
+                    </h5>
+                </div>
+                <div class="card-body edit-panel">
+                    <form id="editForm" onsubmit="return false;">
+                        <!-- Basic Information -->
+                        <h6 class="text-muted mb-3">Basic Information</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Company Product Name</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="company_product_name" 
+                                   value="{{ doc_set.company_product_name }}"
+                                   placeholder="Enter product name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">INCI Name</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="inci_name" 
+                                   value="{{ doc_set.inci_name or '' }}"
+                                   placeholder="Enter INCI name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">CAS Number</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="cas_number" 
+                                   value="{{ doc_set.cas_number or '' }}"
+                                   placeholder="Enter CAS number">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Molecular Formula</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="molecular_formula" 
+                                   value="{{ doc_set.molecular_formula or '' }}"
+                                   placeholder="Enter molecular formula">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Supplier Name</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="supplier_name" 
+                                   value="{{ doc_set.supplier_name or '' }}"
+                                   placeholder="Enter supplier name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Batch Number</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="batch_number" 
+                                   value="{{ doc_set.batch_number or '' }}"
+                                   placeholder="Enter batch number">
+                        </div>
+
+                        <!-- Dates -->
+                        <h6 class="text-muted mb-3 mt-4">Dates</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Manufacturing Date</label>
+                            <input type="date" class="form-control editable-field" 
+                                   data-field="manufacturing_date" 
+                                   value="{% if doc_set.manufacturing_date %}{{ doc_set.manufacturing_date.strftime('%Y-%m-%d') }}{% endif %}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control editable-field" 
+                                   data-field="expiry_date" 
+                                   value="{% if doc_set.expiry_date %}{{ doc_set.expiry_date.strftime('%Y-%m-%d') }}{% endif %}">
+                        </div>
+
+                        <!-- Test Results Section -->
+                        <h6 class="text-muted mb-3 mt-4">Test Results</h6>
+                        
+                        <div id="testResultsContainer">
+                            {% for test in doc_set.test_results %}
+                            <div class="test-result-item mb-3 p-3 border rounded">
+                                <div class="mb-2">
+                                    <label class="form-label small">Test Item</label>
+                                    <input type="text" class="form-control form-control-sm" 
+                                           value="{{ test.test_item }}" 
+                                           data-test-id="{{ test.id }}"
+                                           data-field="test_item">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Specification</label>
+                                    <input type="text" class="form-control form-control-sm" 
+                                           value="{{ test.specification }}" 
+                                           data-test-id="{{ test.id }}"
+                                           data-field="specification">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Result</label>
+                                    <input type="text" class="form-control form-control-sm" 
+                                           value="{{ test.result }}" 
+                                           data-test-id="{{ test.id }}"
+                                           data-field="result">
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                    </form>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="button" class="btn btn-success" onclick="approveDocuments()">
+                            <i class="fas fa-check me-2"></i>
+                            Approve Documents
+                        </button>
+                        <a href="{{ url_for('upload') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to Upload
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Preview -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-eye me-2"></i>
+                            Live Preview
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm active" 
+                                    onclick="switchPreview('coa')" id="previewBtnCoa">
+                                COA
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                    onclick="switchPreview('msds')" id="previewBtnMsds">
+                                MSDS
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                    onclick="switchPreview('tds')" id="previewBtnTds">
+                                TDS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="preview-container">
+                        <div id="previewLoading" class="d-none">
+                            <div class="text-center p-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Updating preview...</p>
+                            </div>
+                        </div>
+                        <iframe id="previewFrame" 
+                                src="{{ url_for('preview_document', doc_set_id=doc_set.id, doc_type='coa') }}" 
+                                style="width: 100%; height: 800px; border: none;">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Approve Documents</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to approve these documents? This will move you to the signing phase.</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    You can still make changes after approval but before signing.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('approve_documents', doc_set_id=doc_set.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>
+                        Approve & Continue
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const docSetId = {{ doc_set.id }};
+    let currentPreview = 'coa';
+    let updateTimeout = null;
+
+    // Initialize edit handlers
+    document.querySelectorAll('.editable-field').forEach(field => {
+        field.addEventListener('input', function() {
+            const fieldName = this.dataset.field;
+            const fieldValue = this.value;
+            
+            // Clear existing timeout
+            if (updateTimeout) {
+                clearTimeout(updateTimeout);
+            }
+            
+            // Set new timeout for 500ms after user stops typing
+            updateTimeout = setTimeout(() => {
+                updateField(fieldName, fieldValue);
+            }, 500);
+        });
+    });
+
+    async function updateField(fieldName, fieldValue) {
+        try {
+            const response = await fetch(`/api/update-field/${docSetId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    field_name: fieldName,
+                    field_value: fieldValue
+                })
+            });
+            
+            if (response.ok) {
+                // Update preview after successful field update
+                updatePreview();
+            } else {
+                console.error('Failed to update field');
+            }
+        } catch (error) {
+            console.error('Error updating field:', error);
+        }
+    }
+
+    async function updatePreview() {
+        const previewFrame = document.getElementById('previewFrame');
+        const loadingDiv = document.getElementById('previewLoading');
+        
+        // Show loading state
+        loadingDiv.classList.remove('d-none');
+        previewFrame.style.opacity = '0.3';
+        
+        // Add timestamp to force refresh
+        const timestamp = new Date().getTime();
+        const newSrc = `/api/preview/${docSetId}/${currentPreview}?t=${timestamp}`;
+        
+        previewFrame.onload = function() {
+            loadingDiv.classList.add('d-none');
+            previewFrame.style.opacity = '1';
+        };
+        
+        previewFrame.src = newSrc;
+    }
+
+    function switchPreview(docType) {
+        currentPreview = docType;
+        
+        // Update button states
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById(`previewBtn${docType.charAt(0).toUpperCase() + docType.slice(1)}`).classList.add('active');
+        
+        // Update preview
+        updatePreview();
+    }
+
+    function approveDocuments() {
+        const approvalModal = new bootstrap.Modal(document.getElementById('approvalModal'));
+        approvalModal.show();
+    }
+</script>
+{% endblock %}

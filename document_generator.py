@@ -380,3 +380,197 @@ class DocumentGenerator:
         date_part = datetime.now().strftime("%y%m%d")
         suffix = f"{doc_set.id:02d}K1"
         return f"{prefix}/{date_part}{suffix}"
+    
+    def generate_preview_coa(self, doc_set, extracted_data):
+        """Generate preview COA document"""
+        filename = f"preview_{doc_set.id}_COA.pdf"
+        filepath = os.path.join(current_app.config['GENERATED_FOLDER'], filename)
+        return self.generate_coa_to_path(doc_set, extracted_data, filepath)
+    
+    def generate_preview_msds(self, doc_set, extracted_data):
+        """Generate preview MSDS document"""
+        filename = f"preview_{doc_set.id}_MSDS.pdf"
+        filepath = os.path.join(current_app.config['GENERATED_FOLDER'], filename)
+        return self.generate_msds_to_path(doc_set, extracted_data, filepath)
+    
+    def generate_preview_tds(self, doc_set, extracted_data):
+        """Generate preview TDS document"""
+        filename = f"preview_{doc_set.id}_TDS.pdf"
+        filepath = os.path.join(current_app.config['GENERATED_FOLDER'], filename)
+        return self.generate_tds_to_path(doc_set, extracted_data, filepath)
+    
+    def generate_coa_to_path(self, doc_set, extracted_data, filepath):
+        """Generate COA to specific path"""
+        doc = SimpleDocTemplate(filepath, pagesize=A4)
+        styles = self.get_styles()
+        story = []
+        
+        # Company header
+        story.append(Paragraph(self.company_name, styles['CompanyHeader']))
+        story.append(Paragraph(self.company_address, styles['Normal']))
+        story.append(Paragraph(f"Mobile No.: {self.company_phone}", styles['Normal']))
+        story.append(Spacer(1, 20))
+        
+        # Document title
+        story.append(Paragraph("CERTIFICATE OF ANALYSIS", styles['DocumentTitle']))
+        story.append(Spacer(1, 20))
+        
+        # Product information table
+        product_data = [
+            ['Product Name:', doc_set.company_product_name],
+            ['INCI Name:', extracted_data.get('inci_name', '')],
+            ['Batch Number:', self.generate_batch_number(doc_set)],
+            ['Manufacturing Date:', datetime.now().strftime('%d-%m-%Y')],
+            ['Expiry Date:', (datetime.now() + timedelta(days=730)).strftime('%d-%m-%Y')]
+        ]
+        
+        product_table = Table(product_data, colWidths=[2*inch, 4*inch])
+        product_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ]))
+        
+        story.append(product_table)
+        story.append(Spacer(1, 30))
+        
+        # Test results table
+        test_data = [['Test Items', 'Specifications', 'Results']]
+        
+        # Add test results from extracted data
+        for test in extracted_data.get('test_results', []):
+            if test.get('document_type') == 'COA':
+                test_data.append([
+                    test.get('test_item', ''),
+                    test.get('specification', ''),
+                    test.get('result', '')
+                ])
+        
+        # Add default tests if none found
+        if len(test_data) == 1:
+            test_data.extend([
+                ['Appearance', 'White solid powder', 'White powder'],
+                ['Sodium hyaluronate content', '≥ 95%', '97.4%'],
+                ['Protein', '≤ 0.1%', '0.04%'],
+                ['Loss on drying', '≤ 10%', '6.8%'],
+                ['pH', '5.0-8.5', '6.8'],
+                ['Heavy metal', '≤20 ppm', '≤20 ppm'],
+                ['Total Bacteria', '< 100 CFU/g', 'Complied'],
+                ['Yeast and molds', '< 50 CFU/g', 'Complied']
+            ])
+        
+        test_table = Table(test_data, colWidths=[2.5*inch, 2*inch, 1.5*inch])
+        test_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        
+        story.append(test_table)
+        story.append(Spacer(1, 40))
+        
+        # Footer
+        footer_data = [
+            ['ISSUED DATE:', datetime.now().strftime('%d-%m-%Y')],
+            ['TEST RESULT:', 'PASS']
+        ]
+        
+        footer_table = Table(footer_data, colWidths=[2*inch, 2*inch])
+        footer_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ]))
+        
+        story.append(footer_table)
+        story.append(Spacer(1, 40))
+        story.append(Paragraph(self.company_name, styles['Normal']))
+        
+        doc.build(story)
+        return filepath
+    
+    def generate_msds_to_path(self, doc_set, extracted_data, filepath):
+        """Generate MSDS to specific path"""
+        # Simplified MSDS generation for preview
+        doc = SimpleDocTemplate(filepath, pagesize=A4)
+        styles = self.get_styles()
+        story = []
+        
+        # Company header
+        story.append(Paragraph(self.company_name, styles['CompanyHeader']))
+        story.append(Spacer(1, 20))
+        
+        # Document title
+        story.append(Paragraph("MATERIAL SAFETY DATA SHEET", styles['DocumentTitle']))
+        story.append(Spacer(1, 20))
+        
+        # Section 1: Identification
+        story.append(Paragraph("1. Identification:", styles['SectionHeader']))
+        
+        identification_data = [
+            ['Product identifier:', doc_set.company_product_name],
+            ['INCI name:', extracted_data.get('inci_name', 'Sodium hyaluronate')],
+            ['Recommended use:', 'cosmetics Industry formulations'],
+            ['Company Name:', self.company_name],
+        ]
+        
+        for item in identification_data:
+            story.append(Paragraph(f"<b>{item[0]}</b> {item[1]}", styles['Normal']))
+        
+        story.append(Spacer(1, 15))
+        
+        # Add more sections (abbreviated for preview)
+        sections = [
+            ("2. Hazards Identification", "Not classified as dangerous according to regulations."),
+            ("3. Composition", f"Sodium Hyaluronate: ≥95%, CAS: {extracted_data.get('cas_number', '9067-32-7')}"),
+        ]
+        
+        for section_title, section_content in sections:
+            story.append(Paragraph(section_title, styles['SectionHeader']))
+            story.append(Paragraph(section_content, styles['Normal']))
+            story.append(Spacer(1, 10))
+        
+        doc.build(story)
+        return filepath
+    
+    def generate_tds_to_path(self, doc_set, extracted_data, filepath):
+        """Generate TDS to specific path"""
+        # Simplified TDS generation for preview
+        doc = SimpleDocTemplate(filepath, pagesize=A4)
+        styles = self.get_styles()
+        story = []
+        
+        # Company header
+        story.append(Paragraph(self.company_name, styles['CompanyHeader']))
+        story.append(Spacer(1, 20))
+        
+        # Product title
+        story.append(Paragraph(doc_set.company_product_name, styles['DocumentTitle']))
+        story.append(Paragraph(f"(INCI Name: {extracted_data.get('inci_name', 'Sodium Hyaluronate')})", styles['Normal']))
+        story.append(Spacer(1, 30))
+        
+        # Description
+        story.append(Paragraph("<b>Description:</b>", styles['SectionHeader']))
+        description = f"{doc_set.company_product_name} is a high-quality chemical ingredient for cosmetic applications."
+        story.append(Paragraph(description, styles['Normal']))
+        story.append(Spacer(1, 15))
+        
+        # Basic information
+        basic_info = [
+            ['INCI Name:', extracted_data.get('inci_name', 'Sodium Hyaluronate')],
+            ['CAS No.:', extracted_data.get('cas_number', '9004-61-9')],
+            ['M.F.:', extracted_data.get('molecular_formula', '(C14H21NO11)n')]
+        ]
+        
+        for item in basic_info:
+            story.append(Paragraph(f"<b>{item[0]}</b> {item[1]}", styles['Normal']))
+        
+        doc.build(story)
+        return filepath

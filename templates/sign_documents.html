@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Documents - Chemical Document Automation{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Pipeline Progress -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="pipeline-progress">
+                        <div class="progress-step completed">
+                            <div class="step-icon">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <div class="step-label">Upload</div>
+                        </div>
+                        <div class="progress-step completed">
+                            <div class="step-icon">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <div class="step-label">Extract</div>
+                        </div>
+                        <div class="progress-step completed">
+                            <div class="step-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="step-label">Edit & Preview</div>
+                        </div>
+                        <div class="progress-step completed">
+                            <div class="step-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="step-label">Approve</div>
+                        </div>
+                        <div class="progress-step active">
+                            <div class="step-icon">
+                                <i class="fas fa-signature"></i>
+                            </div>
+                            <div class="step-label">Sign</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-icon">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="step-label">Export</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-signature me-2"></i>
+                        Sign Documents
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Documents have been approved and are ready for signing.
+                    </div>
+
+                    <!-- Document Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Document Summary</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Product Name:</strong></td>
+                                    <td>{{ doc_set.company_product_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>INCI Name:</strong></td>
+                                    <td>{{ doc_set.inci_name or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Approved At:</strong></td>
+                                    <td>
+                                        {% if extracted_data.get('approved_at') %}
+                                            {{ extracted_data.approved_at[:19].replace('T', ' ') }}
+                                        {% else %}
+                                            Just now
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        <span class="badge bg-success">Approved</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Documents to be Signed</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex align-items-center">
+                                    <i class="fas fa-certificate text-warning me-3"></i>
+                                    <span>Certificate of Analysis (COA)</span>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center">
+                                    <i class="fas fa-shield-alt text-danger me-3"></i>
+                                    <span>Material Safety Data Sheet (MSDS)</span>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center">
+                                    <i class="fas fa-clipboard-list text-info me-3"></i>
+                                    <span>Technical Data Sheet (TDS)</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Signature Form -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Digital Signature</h6>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('finalize_documents', doc_set_id=doc_set.id) }}" method="POST" id="signatureForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="signature_name" class="form-label">
+                                            <i class="fas fa-user me-1"></i>
+                                            Authorized Signatory Name <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="signature_name" name="signature_name" 
+                                               placeholder="Enter full name" required>
+                                        <div class="form-text">Enter the name of the person authorized to sign these documents.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="signature_title" class="form-label">
+                                            <i class="fas fa-briefcase me-1"></i>
+                                            Title/Position <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="signature_title" name="signature_title" 
+                                               placeholder="e.g., Quality Manager" required>
+                                        <div class="form-text">Enter the official title or position of the signatory.</div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Important:</strong> By signing these documents, you confirm that all information is accurate and complete. 
+                                    This will generate the final versions of all documents with your digital signature.
+                                </div>
+
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="confirmSignature" required>
+                                    <label class="form-check-label" for="confirmSignature">
+                                        I confirm that I have reviewed all documents and am authorized to sign on behalf of 
+                                        <strong>{{ doc_set.company_product_name }}</strong>
+                                    </label>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{{ url_for('edit_preview', doc_set_id=doc_set.id) }}" class="btn btn-secondary me-md-2">
+                                        <i class="fas fa-arrow-left me-1"></i>
+                                        Back to Edit
+                                    </a>
+                                    <button type="submit" class="btn btn-success" id="signBtn">
+                                        <i class="fas fa-signature me-1"></i>
+                                        Sign & Finalize Documents
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-eye me-2"></i>
+                                Final Preview
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Review the documents one final time before signing:</p>
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <button type="button" class="btn btn-outline-warning btn-sm w-100" 
+                                            onclick="previewDocument('coa')">
+                                        <i class="fas fa-certificate me-1"></i>
+                                        Preview COA
+                                    </button>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <button type="button" class="btn btn-outline-danger btn-sm w-100" 
+                                            onclick="previewDocument('msds')">
+                                        <i class="fas fa-shield-alt me-1"></i>
+                                        Preview MSDS
+                                    </button>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <button type="button" class="btn btn-outline-info btn-sm w-100" 
+                                            onclick="previewDocument('tds')">
+                                        <i class="fas fa-clipboard-list me-1"></i>
+                                        Preview TDS
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Document Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="previewModalFrame" style="width: 100%; height: 600px; border: none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const docSetId = {{ doc_set.id }};
+
+    function previewDocument(docType) {
+        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        const modalFrame = document.getElementById('previewModalFrame');
+        const modalTitle = document.getElementById('previewModalLabel');
+        
+        // Set modal title
+        const titles = {
+            'coa': 'Certificate of Analysis',
+            'msds': 'Material Safety Data Sheet',
+            'tds': 'Technical Data Sheet'
+        };
+        modalTitle.textContent = titles[docType] || 'Document Preview';
+        
+        // Set iframe source
+        modalFrame.src = `/api/preview/${docSetId}/${docType}?t=${new Date().getTime()}`;
+        
+        // Show modal
+        modal.show();
+    }
+
+    // Form validation
+    document.getElementById('signatureForm').addEventListener('submit', function(e) {
+        const signatureName = document.getElementById('signature_name').value.trim();
+        const signatureTitle = document.getElementById('signature_title').value.trim();
+        const confirmCheck = document.getElementById('confirmSignature').checked;
+
+        if (!signatureName || !signatureTitle || !confirmCheck) {
+            e.preventDefault();
+            alert('Please fill in all required fields and confirm your authorization to sign.');
+            return false;
+        }
+
+        // Show loading state
+        const signBtn = document.getElementById('signBtn');
+        signBtn.disabled = true;
+        signBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Signing...';
+    });
+</script>
+{% endblock %}
