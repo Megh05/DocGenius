@@ -38,6 +38,26 @@ class DocumentGenerator:
             
         return generated_files
     
+    def get_product_name(self, doc_set, extracted_data):
+        """Get the proper product name from extracted data or fallback to company name"""
+        extracted_product_name = extracted_data.get('product_name', '')
+        if extracted_product_name:
+            # Clean up the extracted product name
+            if 'acidcosmeticgrade' in extracted_product_name.lower():
+                return 'Hyaluronic Acid (Cosmetic Grade)'
+            elif 'hyaluronate' in extracted_product_name.lower() and 'sodium' not in extracted_product_name.lower():
+                return 'Sodium Hyaluronate'
+            elif 'hyaluronic' in extracted_product_name.lower():
+                return 'Hyaluronic Acid'
+            else:
+                # Clean up spacing and capitalization
+                clean_name = extracted_product_name.replace('acid', ' Acid').replace('grade', ' Grade')
+                clean_name = ' '.join(clean_name.split())  # Remove extra spaces
+                return clean_name
+        else:
+            # Fallback to company product name if no extraction
+            return doc_set.company_product_name
+
     def get_styles(self):
         """Get custom styles for documents"""
         styles = getSampleStyleSheet()
@@ -76,7 +96,8 @@ class DocumentGenerator:
     
     def generate_coa(self, doc_set, extracted_data):
         """Generate Certificate of Analysis"""
-        filename = f"{doc_set.id}_COA_{doc_set.company_product_name.replace(' ', '_')}.pdf"
+        product_name = self.get_product_name(doc_set, extracted_data)
+        filename = f"{doc_set.id}_COA_{product_name.replace(' ', '_').replace('(', '').replace(')', '')}.pdf"
         filepath = os.path.join(current_app.config['GENERATED_FOLDER'], filename)
         
         doc = SimpleDocTemplate(filepath, pagesize=A4)
@@ -95,7 +116,7 @@ class DocumentGenerator:
         
         # Product information table
         product_data = [
-            ['Product Name:', doc_set.company_product_name],
+            ['Product Name:', product_name],
             ['INCI Name:', extracted_data.get('inci_name', '')],
             ['Batch Number:', self.generate_batch_number(doc_set)],
             ['Manufacturing Date:', datetime.now().strftime('%d-%m-%Y')],
@@ -176,7 +197,8 @@ class DocumentGenerator:
     
     def generate_msds(self, doc_set, extracted_data):
         """Generate Material Safety Data Sheet"""
-        filename = f"{doc_set.id}_MSDS_{doc_set.company_product_name.replace(' ', '_')}.pdf"
+        product_name = self.get_product_name(doc_set, extracted_data)
+        filename = f"{doc_set.id}_MSDS_{product_name.replace(' ', '_').replace('(', '').replace(')', '')}.pdf"
         filepath = os.path.join(current_app.config['GENERATED_FOLDER'], filename)
         
         doc = SimpleDocTemplate(filepath, pagesize=A4)
@@ -195,7 +217,7 @@ class DocumentGenerator:
         story.append(Paragraph("1. Identification:", styles['SectionHeader']))
         
         identification_data = [
-            ['Product identifier:', doc_set.company_product_name],
+            ['Product identifier:', product_name],
             ['INCI name:', extracted_data.get('inci_name', 'Sodium hyaluronate')],
             ['Recommended use:', 'cosmetics Industry formulations'],
             ['Industrial sector:', 'Chemical Industry'],
@@ -267,7 +289,8 @@ class DocumentGenerator:
     
     def generate_tds(self, doc_set, extracted_data):
         """Generate Technical Data Sheet"""
-        filename = f"{doc_set.id}_TDS_{doc_set.company_product_name.replace(' ', '_')}.pdf"
+        product_name = self.get_product_name(doc_set, extracted_data)
+        filename = f"{doc_set.id}_TDS_{product_name.replace(' ', '_').replace('(', '').replace(')', '')}.pdf"
         filepath = os.path.join(current_app.config['GENERATED_FOLDER'], filename)
         
         doc = SimpleDocTemplate(filepath, pagesize=A4)
@@ -279,7 +302,7 @@ class DocumentGenerator:
         story.append(Spacer(1, 20))
         
         # Product title
-        story.append(Paragraph(doc_set.company_product_name, styles['DocumentTitle']))
+        story.append(Paragraph(product_name, styles['DocumentTitle']))
         story.append(Paragraph(f"(INCI Name: {extracted_data.get('inci_name', 'Sodium Hyaluronate')})", styles['Normal']))
         story.append(Spacer(1, 30))
         
