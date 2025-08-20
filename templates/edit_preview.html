@@ -63,207 +63,229 @@
                     </h5>
                 </div>
                 <div class="card-body edit-panel">
+                    <!-- Document Type Indicator -->
+                    <div class="mb-3">
+                        <span class="badge bg-primary" id="currentDocumentType">COA Fields</span>
+                    </div>
+                    
                     <form id="editForm" onsubmit="return false;">
-                        <!-- Basic Information -->
-                        <h6 class="text-muted mb-3">Basic Information</h6>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Company Product Name</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="company_product_name" 
-                                   value="{{ doc_set.company_product_name }}"
-                                   placeholder="Enter product name">
+                        <!-- Common Fields (shown for all documents) -->
+                        <div id="commonFields">
+                            <h6 class="text-muted mb-3">Basic Information</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Company Product Name</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="company_product_name" 
+                                       value="{{ doc_set.company_product_name }}"
+                                       placeholder="Enter product name">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Supplier Name</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="supplier_name" 
+                                       value="{{ doc_set.supplier_name or '' }}"
+                                       placeholder="Enter supplier name">
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">INCI Name</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="inci_name" 
-                                   value="{{ doc_set.inci_name or '' }}"
-                                   placeholder="Enter INCI name">
-                        </div>
+                        <!-- COA Specific Fields -->
+                        <div id="coaFields" class="document-fields">
+                            <h6 class="text-muted mb-3 mt-4">Certificate of Analysis Fields</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">INCI Name</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="inci_name" 
+                                       value="{{ doc_set.inci_name or '' }}"
+                                       placeholder="Enter INCI name">
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">CAS Number</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="cas_number" 
-                                   value="{{ doc_set.cas_number or '' }}"
-                                   placeholder="Enter CAS number">
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label">Batch Number</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="batch_number" 
+                                       value="{{ doc_set.batch_number or '' }}"
+                                       placeholder="Enter batch number">
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Molecular Formula</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="molecular_formula" 
-                                   value="{{ doc_set.molecular_formula or '' }}"
-                                   placeholder="Enter molecular formula">
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label">Manufacturing Date</label>
+                                <input type="date" class="form-control editable-field" 
+                                       data-field="manufacturing_date" 
+                                       value="{% if doc_set.manufacturing_date %}{{ doc_set.manufacturing_date.strftime('%Y-%m-%d') }}{% endif %}">
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Supplier Name</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="supplier_name" 
-                                   value="{{ doc_set.supplier_name or '' }}"
-                                   placeholder="Enter supplier name">
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="date" class="form-control editable-field" 
+                                       data-field="expiry_date" 
+                                       value="{% if doc_set.expiry_date %}{{ doc_set.expiry_date.strftime('%Y-%m-%d') }}{% endif %}">
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Batch Number</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="batch_number" 
-                                   value="{{ doc_set.batch_number or '' }}"
-                                   placeholder="Enter batch number">
-                        </div>
-
-                        <!-- Dates -->
-                        <h6 class="text-muted mb-3 mt-4">Dates</h6>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Manufacturing Date</label>
-                            <input type="date" class="form-control editable-field" 
-                                   data-field="manufacturing_date" 
-                                   value="{% if doc_set.manufacturing_date %}{{ doc_set.manufacturing_date.strftime('%Y-%m-%d') }}{% endif %}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Expiry Date</label>
-                            <input type="date" class="form-control editable-field" 
-                                   data-field="expiry_date" 
-                                   value="{% if doc_set.expiry_date %}{{ doc_set.expiry_date.strftime('%Y-%m-%d') }}{% endif %}">
-                        </div>
-
-                        <!-- TDS Information -->
-                        <h6 class="text-muted mb-3 mt-4">Technical Data</h6>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Recommended Use Level</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="recommended_use_level" 
-                                   value="{{ extracted_data.get('recommended_use_level', '') }}"
-                                   placeholder="Enter recommended use level">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Use Method</label>
-                            <textarea class="form-control editable-field" 
-                                      data-field="use_method" 
-                                      rows="2"
-                                      placeholder="Enter use method">{{ extracted_data.get('use_method', '') }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Storage Conditions</label>
-                            <textarea class="form-control editable-field" 
-                                      data-field="storage_conditions" 
-                                      rows="2"
-                                      placeholder="Enter storage conditions">{{ extracted_data.get('storage_conditions', '') }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Shelf Life</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="shelf_life" 
-                                   value="{{ extracted_data.get('shelf_life', '') }}"
-                                   placeholder="Enter shelf life">
-                        </div>
-
-                        <!-- Physical Properties -->
-                        <h6 class="text-muted mb-3 mt-4">Physical Properties</h6>
-                        
-                        {% set physical_props = extracted_data.get('physical_properties', {}) %}
-                        <div class="mb-3">
-                            <label class="form-label">Appearance</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="physical_properties.appearance" 
-                                   value="{{ physical_props.get('appearance', '') }}"
-                                   placeholder="Enter appearance">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Solubility</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="physical_properties.solubility" 
-                                   value="{{ physical_props.get('solubility', '') }}"
-                                   placeholder="Enter solubility">
-                        </div>
-
-                        <!-- Safety Data -->
-                        <h6 class="text-muted mb-3 mt-4">Safety Data</h6>
-                        
-                        {% set safety_data = extracted_data.get('safety_data', {}) %}
-                        <div class="mb-3">
-                            <label class="form-label">pH Value</label>
-                            <input type="text" class="form-control editable-field" 
-                                   data-field="safety_data.ph" 
-                                   value="{{ safety_data.get('ph', '') }}"
-                                   placeholder="Enter pH value">
-                        </div>
-
-                        <!-- Specifications -->
-                        <h6 class="text-muted mb-3 mt-4">Specifications</h6>
-                        
-                        <div id="specificationsContainer">
-                            {% set specs = extracted_data.get('specifications', {}) %}
-                            {% for spec_name, spec_value in specs.items() %}
-                            <div class="specification-item mb-3 p-3 border rounded">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label class="form-label small">Specification Name</label>
-                                        <input type="text" class="form-control form-control-sm spec-name" 
-                                               value="{{ spec_name }}" 
-                                               data-original-name="{{ spec_name }}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small">Specification Value</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control form-control-sm spec-value" 
-                                                   value="{{ spec_value }}"
-                                                   data-spec-name="{{ spec_name }}">
-                                            <button type="button" class="btn btn-outline-danger btn-sm remove-spec-btn">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                            <!-- Test Results Section -->
+                            <h6 class="text-muted mb-3 mt-4">Test Results</h6>
+                            
+                            <div id="testResultsContainer">
+                                {% for test in doc_set.test_results %}
+                                <div class="test-result-item mb-3 p-3 border rounded">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label small">Test Parameter</label>
+                                            <input type="text" class="form-control form-control-sm test-parameter" 
+                                                   value="{{ test.parameter_name }}" 
+                                                   data-test-id="{{ test.id }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small">Test Result</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control form-control-sm test-result" 
+                                                       value="{{ test.result }}"
+                                                       data-test-id="{{ test.id }}">
+                                                <button type="button" class="btn btn-outline-danger btn-sm remove-test-btn"
+                                                        data-test-id="{{ test.id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
+                            
+                            <button type="button" class="btn btn-outline-primary btn-sm mb-4" onclick="addTestResult()">
+                                <i class="fas fa-plus me-1"></i>
+                                Add Test Result
+                            </button>
                         </div>
-                        
-                        <button type="button" class="btn btn-outline-primary btn-sm mb-4" onclick="addSpecification()">
-                            <i class="fas fa-plus me-1"></i>
-                            Add Specification
-                        </button>
 
-                        <!-- Test Results Section -->
-                        <h6 class="text-muted mb-3 mt-4">Test Results</h6>
-                        
-                        <div id="testResultsContainer">
-                            {% for test in doc_set.test_results %}
-                            <div class="test-result-item mb-3 p-3 border rounded">
-                                <div class="mb-2">
-                                    <label class="form-label small">Test Item</label>
-                                    <input type="text" class="form-control form-control-sm" 
-                                           value="{{ test.test_item }}" 
-                                           data-test-id="{{ test.id }}"
-                                           data-field="test_item">
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label small">Specification</label>
-                                    <input type="text" class="form-control form-control-sm" 
-                                           value="{{ test.specification }}" 
-                                           data-test-id="{{ test.id }}"
-                                           data-field="specification">
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label small">Result</label>
-                                    <input type="text" class="form-control form-control-sm" 
-                                           value="{{ test.result }}" 
-                                           data-test-id="{{ test.id }}"
-                                           data-field="result">
-                                </div>
+                        <!-- MSDS Specific Fields -->
+                        <div id="msdsFields" class="document-fields" style="display: none;">
+                            <h6 class="text-muted mb-3 mt-4">Material Safety Data Sheet Fields</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">CAS Number</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="cas_number" 
+                                       value="{{ doc_set.cas_number or '' }}"
+                                       placeholder="Enter CAS number">
                             </div>
-                            {% endfor %}
+
+                            <div class="mb-3">
+                                <label class="form-label">Molecular Formula</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="molecular_formula" 
+                                       value="{{ doc_set.molecular_formula or '' }}"
+                                       placeholder="Enter molecular formula">
+                            </div>
+
+                            <!-- Physical Properties -->
+                            <h6 class="text-muted mb-3 mt-4">Physical Properties</h6>
+                            
+                            {% set physical_props = extracted_data.get('physical_properties', {}) %}
+                            <div class="mb-3">
+                                <label class="form-label">Appearance</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="physical_properties.appearance" 
+                                       value="{{ physical_props.get('appearance', '') }}"
+                                       placeholder="Enter appearance">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Solubility</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="physical_properties.solubility" 
+                                       value="{{ physical_props.get('solubility', '') }}"
+                                       placeholder="Enter solubility">
+                            </div>
+
+                            <!-- Safety Data -->
+                            <h6 class="text-muted mb-3 mt-4">Safety Information</h6>
+                            
+                            {% set safety_data = extracted_data.get('safety_data', {}) %}
+                            <div class="mb-3">
+                                <label class="form-label">pH Value</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="safety_data.ph" 
+                                       value="{{ safety_data.get('ph', '') }}"
+                                       placeholder="Enter pH value">
+                            </div>
                         </div>
+
+                        <!-- TDS Specific Fields -->
+                        <div id="tdsFields" class="document-fields" style="display: none;">
+                            <h6 class="text-muted mb-3 mt-4">Technical Data Sheet Fields</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Recommended Use Level</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="recommended_use_level" 
+                                       value="{{ extracted_data.get('recommended_use_level', '') }}"
+                                       placeholder="Enter recommended use level">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Use Method</label>
+                                <textarea class="form-control editable-field" 
+                                          data-field="use_method" 
+                                          rows="2"
+                                          placeholder="Enter use method">{{ extracted_data.get('use_method', '') }}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Storage Conditions</label>
+                                <textarea class="form-control editable-field" 
+                                          data-field="storage_conditions" 
+                                          rows="2"
+                                          placeholder="Enter storage conditions">{{ extracted_data.get('storage_conditions', '') }}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Shelf Life</label>
+                                <input type="text" class="form-control editable-field" 
+                                       data-field="shelf_life" 
+                                       value="{{ extracted_data.get('shelf_life', '') }}"
+                                       placeholder="Enter shelf life">
+                            </div>
+
+                            <!-- Specifications -->
+                            <h6 class="text-muted mb-3 mt-4">Technical Specifications</h6>
+                            
+                            <div id="specificationsContainer">
+                                {% set specs = extracted_data.get('specifications', {}) %}
+                                {% for spec_name, spec_value in specs.items() %}
+                                <div class="specification-item mb-3 p-3 border rounded">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label small">Specification Name</label>
+                                            <input type="text" class="form-control form-control-sm spec-name" 
+                                                   value="{{ spec_name }}" 
+                                                   data-original-name="{{ spec_name }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small">Specification Value</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control form-control-sm spec-value" 
+                                                       value="{{ spec_value }}"
+                                                       data-spec-name="{{ spec_name }}">
+                                                <button type="button" class="btn btn-outline-danger btn-sm remove-spec-btn">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline-primary btn-sm mb-4" onclick="addSpecification()">
+                                <i class="fas fa-plus me-1"></i>
+                                Add Specification
+                            </button>
+                        </div>
+
+
 
                     </form>
 
@@ -380,6 +402,9 @@
 
     // Initialize specification handlers
     initializeSpecificationHandlers();
+    
+    // Initialize document field switching - show COA fields by default
+    switchPreview('coa');
 
     function initializeSpecificationHandlers() {
         // Handle specification value changes
@@ -474,6 +499,25 @@
             btn.classList.remove('active');
         });
         document.getElementById(`previewBtn${docType.charAt(0).toUpperCase() + docType.slice(1)}`).classList.add('active');
+        
+        // Update document type indicator
+        const indicator = document.getElementById('currentDocumentType');
+        const documentNames = {
+            'coa': 'COA Fields',
+            'msds': 'MSDS Fields', 
+            'tds': 'TDS Fields'
+        };
+        indicator.textContent = documentNames[docType] || 'Document Fields';
+        
+        // Show/hide appropriate field sections
+        document.querySelectorAll('.document-fields').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        const targetSection = document.getElementById(`${docType}Fields`);
+        if (targetSection) {
+            targetSection.style.display = 'block';
+        }
         
         // Update preview
         updatePreview();
@@ -627,6 +671,64 @@
         
         // Focus on the name input
         specName.focus();
+    }
+
+    function addTestResult() {
+        const container = document.getElementById('testResultsContainer');
+        const newTestItem = document.createElement('div');
+        newTestItem.className = 'test-result-item mb-3 p-3 border rounded';
+        newTestItem.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label small">Test Parameter</label>
+                    <input type="text" class="form-control form-control-sm test-parameter" 
+                           value="" 
+                           placeholder="Enter test parameter">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small">Test Result</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm test-result" 
+                               value=""
+                               placeholder="Enter test result">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-test-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(newTestItem);
+        
+        // Initialize handlers for new test result
+        const testParameter = newTestItem.querySelector('.test-parameter');
+        const testResult = newTestItem.querySelector('.test-result');
+        const removeBtn = newTestItem.querySelector('.remove-test-btn');
+        
+        // Handle remove button
+        removeBtn.addEventListener('click', function() {
+            newTestItem.remove();
+            updatePreview();
+        });
+        
+        // Handle field changes
+        [testParameter, testResult].forEach(field => {
+            field.addEventListener('input', function() {
+                // Clear existing timeout
+                if (updateTimeout) {
+                    clearTimeout(updateTimeout);
+                }
+                
+                // Set new timeout for 500ms after user stops typing
+                updateTimeout = setTimeout(() => {
+                    updatePreview();
+                }, 500);
+            });
+        });
+        
+        // Focus on the parameter input
+        testParameter.focus();
     }
 
     function approveDocuments() {
