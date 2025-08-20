@@ -68,14 +68,26 @@ class PDFProcessor:
             
             # Apply Mistral field validation if enabled
             try:
-                from flask import session
-                if session.get('enable_field_validation', False) and session.get('mistral_api_key'):
+                from config_manager import config_manager
+                
+                # Check if field validation is enabled
+                enable_validation = config_manager.get_setting('enable_field_validation', False)
+                if not enable_validation:
+                    try:
+                        from flask import session
+                        enable_validation = session.get('enable_field_validation', False)
+                    except:
+                        pass
+                
+                if enable_validation and config_manager.get_mistral_api_key():
                     from mistral_service import MistralService
                     mistral = MistralService()
                     self.logger.info("Applying Mistral field validation and correction")
-                    extracted_data = mistral.validate_and_correct_fields(extracted_data)
-            except ImportError:
-                self.logger.debug("Session not available outside Flask context")
+                    # Apply validation with timeout protection
+                    try:
+                        extracted_data = mistral.validate_and_correct_fields(extracted_data)
+                    except Exception as validation_error:
+                        self.logger.warning(f"Mistral validation timeout/error: {validation_error}")
             except Exception as mistral_error:
                 self.logger.warning(f"Mistral validation failed, continuing with original data: {mistral_error}")
                 
@@ -91,8 +103,18 @@ class PDFProcessor:
         
         # Try Mistral OCR enhancement first if enabled
         try:
-            from flask import session
-            if session.get('enable_mistral_ocr', False) and session.get('mistral_api_key'):
+            from config_manager import config_manager
+            
+            # Check if Mistral OCR is enabled via config or session
+            enable_mistral = config_manager.get_setting('enable_mistral_ocr', False)
+            if not enable_mistral:
+                try:
+                    from flask import session
+                    enable_mistral = session.get('enable_mistral_ocr', False)
+                except:
+                    pass
+            
+            if enable_mistral and config_manager.get_mistral_api_key():
                 from mistral_service import MistralService
                 mistral = MistralService()
                 
@@ -109,6 +131,7 @@ class PDFProcessor:
                     
                     try:
                         self.logger.info(f"Using Mistral OCR enhancement for {file_path}")
+                        # Use shorter timeout to prevent worker timeout
                         mistral_text = mistral.enhance_ocr_extraction(temp_img_path)
                         if len(mistral_text.strip()) > 100:  # Mistral found substantial content
                             self.logger.info(f"Mistral OCR extracted {len(mistral_text)} characters")
@@ -119,8 +142,6 @@ class PDFProcessor:
                     finally:
                         if os.path.exists(temp_img_path):
                             os.unlink(temp_img_path)
-        except ImportError:
-            self.logger.debug("Session not available outside Flask context")
         except Exception as mistral_error:
             self.logger.warning(f"Mistral OCR setup failed: {mistral_error}, falling back to standard OCR")
         

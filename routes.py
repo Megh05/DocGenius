@@ -26,6 +26,11 @@ def home():
     recent_documents = DocumentSet.query.order_by(DocumentSet.created_at.desc()).limit(5).all()
     return render_template('index.html', recent_documents=recent_documents)
 
+@app.route('/upload-pipeline')
+def upload_pipeline():
+    """Show the pipeline view for document upload"""
+    return render_template('upload_pipeline.html')
+
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
@@ -474,20 +479,29 @@ def test_mistral_connection():
 
 @app.route('/api/save-settings', methods=['POST'])
 def save_settings():
-    """Save Mistral settings to session"""
+    """Save Mistral settings to config file"""
     try:
         data = request.get_json()
         
-        # Store settings in session
-        session['mistral_api_key'] = data.get('mistral_api_key', '')
-        session['enable_mistral_ocr'] = data.get('enable_mistral_ocr', True)
-        session['enable_field_validation'] = data.get('enable_field_validation', True)
+        # Import config manager
+        from config_manager import config_manager
         
-        # Also set environment variable for current session
+        # Save to config file
+        success = config_manager.update_mistral_settings(data)
+        
+        # Also store in session for immediate use
+        session['mistral_api_key'] = data.get('mistral_api_key', '')
+        session['enable_mistral_ocr'] = data.get('enable_mistral_ocr', False)
+        session['enable_field_validation'] = data.get('enable_field_validation', False)
+        
+        # Set environment variable for current session
         if data.get('mistral_api_key'):
             os.environ['MISTRAL_API_KEY'] = data.get('mistral_api_key')
         
-        return jsonify({'success': True, 'message': 'Settings saved successfully'})
+        if success:
+            return jsonify({'success': True, 'message': 'Settings saved successfully to file'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save settings to file'}), 500
         
     except Exception as e:
         current_app.logger.error(f"Error saving settings: {str(e)}")
@@ -495,13 +509,19 @@ def save_settings():
 
 @app.route('/api/get-settings', methods=['GET'])
 def get_settings():
-    """Get current Mistral settings"""
+    """Get current Mistral settings from config file"""
     try:
+        from config_manager import config_manager
+        
+        # Get settings from config file
+        file_settings = config_manager.get_mistral_settings()
+        
+        # Merge with session settings for backwards compatibility
         settings = {
             'success': True,
-            'enable_mistral_ocr': session.get('enable_mistral_ocr', True),
-            'enable_field_validation': session.get('enable_field_validation', True),
-            'has_api_key': bool(session.get('mistral_api_key'))
+            'enable_mistral_ocr': file_settings.get('enable_mistral_ocr', session.get('enable_mistral_ocr', False)),
+            'enable_field_validation': file_settings.get('enable_field_validation', session.get('enable_field_validation', False)),
+            'has_api_key': file_settings.get('has_api_key', bool(session.get('mistral_api_key')))
         }
         
         return jsonify(settings)

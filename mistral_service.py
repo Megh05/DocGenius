@@ -13,8 +13,19 @@ import io
 class MistralService:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.api_key = os.environ.get('MISTRAL_API_KEY')
         self.base_url = "https://api.mistral.ai/v1"
+        
+        # Get API key from config manager first, then environment
+        from config_manager import config_manager
+        self.api_key = config_manager.get_mistral_api_key()
+        if not self.api_key:
+            self.api_key = os.environ.get('MISTRAL_API_KEY')
+        if not self.api_key:
+            try:
+                from flask import session
+                self.api_key = session.get('mistral_api_key')
+            except:
+                pass
         
     def test_connection(self, api_key: str = None) -> Dict[str, Any]:
         """Test Mistral API connection"""
@@ -96,7 +107,7 @@ class MistralService:
             }
             
             response = requests.post(f"{self.base_url}/chat/completions", 
-                                   headers=headers, json=payload, timeout=15)
+                                   headers=headers, json=payload, timeout=8)
             
             if response.status_code == 200:
                 result = response.json()
@@ -157,7 +168,7 @@ class MistralService:
             }
             
             response = requests.post(f"{self.base_url}/chat/completions", 
-                                   headers=headers, json=payload, timeout=15)
+                                   headers=headers, json=payload, timeout=8)
             
             if response.status_code == 200:
                 result = response.json()
