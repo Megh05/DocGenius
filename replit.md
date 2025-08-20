@@ -8,6 +8,22 @@ This is a Flask-based web application that automates the processing of chemical 
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (August 2025)
+
+### Enhanced PDF Processing System
+- **Date**: August 20, 2025
+- **Issue**: Original PDF extraction was not capturing all pages from multi-page documents (MSDS had 6 pages, only reading 1)
+- **Solution**: Enhanced PDF processor with multi-page support and OCR capabilities
+- **Key Improvements**:
+  - Multi-page text extraction with page-by-page processing
+  - OCR fallback for image-based PDFs (like COA documents)
+  - Enhanced pattern matching for Chinese supplier documents
+  - Better extraction of product names, CAS numbers, INCI names, molecular formulas
+  - Multi-language support (English and Chinese patterns)
+  - Improved table detection for test results and specifications
+- **Dependencies Added**: pytesseract, pdf2image, opencv-python (with graceful fallbacks)
+- **Status**: Successfully extracting data from Sodium Hyaluronate supplier documents
+
 ## System Architecture
 
 ### Frontend Architecture

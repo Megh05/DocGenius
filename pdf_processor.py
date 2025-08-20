@@ -69,26 +69,41 @@ class PDFProcessor:
     def extract_text_from_pdf(self, file_path: str) -> str:
         """Extract text from PDF file using multiple methods"""
         text = ""
+        total_pages = 0
+        pages_with_text = 0
+        
         try:
             # First try pdfplumber (for text-based PDFs)
             with pdfplumber.open(file_path) as pdf:
-                for page in pdf.pages:
+                total_pages = len(pdf.pages)
+                self.logger.info(f"Processing {total_pages} pages from {file_path}")
+                
+                for i, page in enumerate(pdf.pages):
                     page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
+                    if page_text and len(page_text.strip()) > 10:
+                        text += f"\n--- PAGE {i+1} ---\n" + page_text + "\n"
+                        pages_with_text += 1
+                    else:
+                        self.logger.debug(f"Page {i+1} has minimal or no text")
             
-            # If text extraction failed or returned minimal text, try OCR
-            if len(text.strip()) < 100 and OCR_AVAILABLE:
-                self.logger.info(f"Limited text found, attempting OCR for {file_path}")
+            self.logger.info(f"Extracted text from {pages_with_text}/{total_pages} pages")
+            
+            # If very few pages had text or total text is minimal, try OCR
+            if (pages_with_text < total_pages * 0.5 or len(text.strip()) < 200) and OCR_AVAILABLE:
+                self.logger.info(f"Limited text extraction ({pages_with_text}/{total_pages} pages), attempting OCR for {file_path}")
                 ocr_text = self.extract_text_with_ocr(file_path)
-                if len(ocr_text) > len(text):
+                if len(ocr_text.strip()) > len(text.strip()):
+                    self.logger.info("OCR provided better results, using OCR text")
                     text = ocr_text
+                else:
+                    self.logger.info("Original extraction was better, keeping original text")
                     
         except Exception as e:
             self.logger.error(f"Error extracting text from {file_path}: {str(e)}")
             # Try OCR as fallback
             if OCR_AVAILABLE:
                 try:
+                    self.logger.info("Attempting OCR as fallback")
                     text = self.extract_text_with_ocr(file_path)
                 except Exception as ocr_error:
                     self.logger.error(f"OCR fallback failed: {str(ocr_error)}")
@@ -267,19 +282,21 @@ class PDFProcessor:
         text = self.extract_text_from_pdf(file_path)
         data = {}
         
-        # Extract product name from MSDS as well
+        # Extract product name from MSDS as well - enhanced
         product_patterns = [
-            r'Product\s+(?:name|identifier)\s*[:\-]?\s*(.+?)(?:\n|$)',
-            r'Product\s*[:\-]?\s*(.+?)(?:\n|$)',
+            r'Product\s*name\s*(.+?)(?:\n|CAS)',  # Stop at CAS or newline
+            r'Product\s+(?:name|identifier)\s*[:\-]?\s*(.+?)(?:\n|CAS)',
+            r'Productname\s*(.+?)(?:\n|CAS)',  # No space version
             r'Chemical\s+Name\s*[:\-]?\s*(.+?)(?:\n|$)',
-            r'Productname\s*(.+?)(?:\n|$)',  # No space version
         ]
         
         for pattern in product_patterns:
             product_match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
             if product_match:
                 product_name = product_match.group(1).strip()
-                if len(product_name) > 2 and 'section' not in product_name.lower():
+                # Clean up common artifacts
+                product_name = re.sub(r'\s+', ' ', product_name)
+                if len(product_name) > 2 and 'section' not in product_name.lower() and 'identifier' not in product_name.lower():
                     data['product_name'] = product_name
                     break
         
@@ -328,17 +345,21 @@ class PDFProcessor:
                     data['supplier_name'] = supplier_name
                     break
         
-        # Extract INCI name if available in MSDS
+        # Extract INCI name if available in MSDS - enhanced
         inci_patterns = [
-            r'INCI\s*[:\-]?\s*(.+?)(?:\n|$)',
-            r'INCI\s+Name\s*[:\-]?\s*(.+?)(?:\n|$)',
+            r'INCI\s*(?:Name)?\s*[:\-]?\s*(.+?)(?:\n|$)',
+            r'Synonyms\s*[:\-]?\s*(.+?)(?:\n|Formula)',  # Sometimes INCI is in synonyms
         ]
         
         for pattern in inci_patterns:
             inci_match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
             if inci_match:
-                data['inci_name'] = inci_match.group(1).strip()
-                break
+                inci_name = inci_match.group(1).strip()
+                # Filter out obvious non-INCI content
+                if (len(inci_name) > 2 and not any(x in inci_name.lower() for x in 
+                    ['poly', 'according', 'required', 'disposal', 'none'])):
+                    data['inci_name'] = inci_name
+                    break
         
         # Extract safety data
         safety_data = {}
@@ -434,17 +455,22 @@ class PDFProcessor:
                 data['cas_number'] = cas_match.group(1).strip()
                 break
         
-        # Extract molecular formula from TDS
+        # Extract molecular formula from TDS - enhanced
         formula_patterns = [
             r'Molecularformula\s*[（(]?([A-Z0-9\(\)]+n?)[）)]?',
             r'Molecular\s+formula\s*[（(]?([A-Z0-9\(\)]+n?)[）)]?',
+            r'Formula\s*[（(]?\s*([A-Z0-9H\(\)]{3,}n?)\s*[）)]?',  # More flexible pattern
+            r'[（(]\s*([C][H0-9N\(\)O]+n?)\s*[）)]',  # Pattern in parentheses starting with C
         ]
         
         for pattern in formula_patterns:
             formula_match = re.search(pattern, text, re.IGNORECASE)
             if formula_match:
-                data['molecular_formula'] = formula_match.group(1).strip()
-                break
+                formula = formula_match.group(1).strip()
+                # Validate it looks like a molecular formula
+                if len(formula) > 2 and any(c.isdigit() for c in formula):
+                    data['molecular_formula'] = formula
+                    break
         
         # Extract appearance from TDS
         appearance_patterns = [
