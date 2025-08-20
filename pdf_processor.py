@@ -67,49 +67,36 @@ class PDFProcessor:
         return extracted_data
     
     def extract_text_from_pdf(self, file_path: str) -> str:
-        """Extract text from PDF file using multiple methods"""
+        """Extract text from PDF file using OCR as primary method for best accuracy"""
         text = ""
-        total_pages = 0
-        pages_with_text = 0
         
+        # Always try OCR first for most accurate results as requested by user
+        if OCR_AVAILABLE:
+            try:
+                self.logger.info(f"Using OCR for {file_path} as primary extraction method")
+                text = self.extract_text_with_ocr(file_path)
+                if len(text.strip()) > 50:  # OCR found substantial content
+                    self.logger.info(f"OCR successfully extracted {len(text)} characters")
+                    return text
+            except Exception as ocr_error:
+                self.logger.warning(f"OCR failed: {str(ocr_error)}, falling back to pdfplumber")
+        
+        # Fallback to pdfplumber if OCR fails or not available
         try:
-            # First try pdfplumber (for text-based PDFs)
             with pdfplumber.open(file_path) as pdf:
                 total_pages = len(pdf.pages)
-                self.logger.info(f"Processing {total_pages} pages from {file_path}")
+                self.logger.info(f"Fallback: Processing {total_pages} pages with pdfplumber from {file_path}")
                 
                 for i, page in enumerate(pdf.pages):
                     page_text = page.extract_text()
-                    if page_text and len(page_text.strip()) > 10:
+                    if page_text and len(page_text.strip()) > 5:
                         text += f"\n--- PAGE {i+1} ---\n" + page_text + "\n"
-                        pages_with_text += 1
-                    else:
-                        self.logger.debug(f"Page {i+1} has minimal or no text")
-            
-            self.logger.info(f"Extracted text from {pages_with_text}/{total_pages} pages")
-            
-            # If very few pages had text or total text is minimal, try OCR
-            if (pages_with_text < total_pages * 0.5 or len(text.strip()) < 200) and OCR_AVAILABLE:
-                self.logger.info(f"Limited text extraction ({pages_with_text}/{total_pages} pages), attempting OCR for {file_path}")
-                ocr_text = self.extract_text_with_ocr(file_path)
-                if len(ocr_text.strip()) > len(text.strip()):
-                    self.logger.info("OCR provided better results, using OCR text")
-                    text = ocr_text
-                else:
-                    self.logger.info("Original extraction was better, keeping original text")
+                    
+                self.logger.info(f"Pdfplumber extracted {len(text)} characters from all pages")
                     
         except Exception as e:
-            self.logger.error(f"Error extracting text from {file_path}: {str(e)}")
-            # Try OCR as fallback
-            if OCR_AVAILABLE:
-                try:
-                    self.logger.info("Attempting OCR as fallback")
-                    text = self.extract_text_with_ocr(file_path)
-                except Exception as ocr_error:
-                    self.logger.error(f"OCR fallback failed: {str(ocr_error)}")
-                    raise e
-            else:
-                raise e
+            self.logger.error(f"Both OCR and pdfplumber failed for {file_path}: {str(e)}")
+            raise e
         
         return text
     
