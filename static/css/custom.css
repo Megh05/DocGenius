@@ -1,0 +1,235 @@
+/* Custom styles for the chemical document automation app */
+
+.hero-section {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
+    color: white;
+    border-radius: 0.5rem;
+}
+
+.upload-area {
+    border: 2px dashed var(--bs-secondary);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bs-dark);
+}
+
+.upload-area:hover {
+    border-color: var(--bs-primary);
+    background: var(--bs-gray-900);
+}
+
+.upload-area.dragover {
+    border-color: var(--bs-success);
+    background: var(--bs-success-bg-subtle);
+}
+
+.upload-area .file-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+}
+
+.upload-placeholder {
+    pointer-events: none;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.feature-icon {
+    transition: transform 0.3s ease;
+}
+
+.card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.file-input:focus + .upload-placeholder {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+}
+
+/* Loading state */
+.processing {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Custom table styles */
+.table-sm th,
+.table-sm td {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .upload-area {
+        padding: 1rem;
+        min-height: 150px;
+    }
+    
+    .hero-section {
+        padding: 2rem 0 !important;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+}
+
+/* Animation for success messages */
+.alert-success {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Custom scrollbar for tables */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: var(--bs-gray-800);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--bs-gray-600);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-gray-500);
+}
+
+/* Card hover effects */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Button loading state */
+.btn .spinner-border {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* File type indicators */
+.file-info .fa-file-pdf {
+    font-size: 1.2rem;
+}
+
+/* Status indicators */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-success {
+    background-color: var(--bs-success);
+}
+
+.status-warning {
+    background-color: var(--bs-warning);
+}
+
+.status-error {
+    background-color: var(--bs-danger);
+}
+
+/* Custom badge styles */
+.badge-chemical {
+    background: linear-gradient(45deg, var(--bs-primary), var(--bs-info));
+    color: white;
+}
+
+/* Footer adjustments */
+footer {
+    border-top: 1px solid var(--bs-border-color);
+}
+
+/* Form validation feedback */
+.was-validated .form-control:valid {
+    border-color: var(--bs-success);
+}
+
+.was-validated .form-control:invalid {
+    border-color: var(--bs-danger);
+}
+
+/* Progress indication */
+.progress-step {
+    position: relative;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.progress-step::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--bs-secondary);
+    z-index: 1;
+}
+
+.progress-step .step-icon {
+    background: var(--bs-dark);
+    border: 2px solid var(--bs-secondary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+}
+
+.progress-step.active .step-icon {
+    border-color: var(--bs-primary);
+    background: var(--bs-primary);
+    color: white;
+}
+
+.progress-step.completed .step-icon {
+    border-color: var(--bs-success);
+    background: var(--bs-success);
+    color: white;
+}

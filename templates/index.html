@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Chemical Document Automation{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center py-5 mb-5">
+    <div class="container">
+        <h1 class="display-4 mb-4">
+            <i class="fas fa-file-pdf text-primary me-3"></i>
+            Chemical Document Automation
+        </h1>
+        <p class="lead mb-4">
+            Transform supplier chemical documents into company-branded versions in minutes, not hours.
+        </p>
+        <p class="text-muted mb-4">
+            Reduce manual processing time from 4-5 hours to just a few minutes with our automated system.
+        </p>
+        <a href="{{ url_for('upload') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-upload me-2"></i>
+            Start Processing Documents
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        How It Works
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-upload fa-3x text-primary"></i>
+                            </div>
+                            <h5>1. Upload Documents</h5>
+                            <p class="text-muted">Upload your supplier's COA, MSDS, and TDS PDF documents.</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-magic fa-3x text-success"></i>
+                            </div>
+                            <h5>2. Automatic Processing</h5>
+                            <p class="text-muted">Our system extracts data and applies your company branding.</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-download fa-3x text-info"></i>
+                            </div>
+                            <h5>3. Download Results</h5>
+                            <p class="text-muted">Get your branded COA, MSDS, and TDS documents ready for use.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Supported Document Types
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-certificate text-warning fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Certificate of Analysis (COA)</h6>
+                                    <small class="text-muted">Test results and quality specifications</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-shield-alt text-danger fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Material Safety Data Sheet (MSDS)</h6>
+                                    <small class="text-muted">Safety and handling information</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-clipboard-list text-info fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Technical Data Sheet (TDS)</h6>
+                                    <small class="text-muted">Product specifications and usage</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            {% if recent_documents %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Recent Documents
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for doc in recent_documents %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong>{{ doc.company_product_name }}</strong><br>
+                            <small class="text-muted">{{ doc.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                        </div>
+                        <a href="{{ url_for('results', doc_set_id=doc.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Benefits
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-success me-2"></i>
+                            Save 4-5 hours per document set
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-accuracy text-primary me-2"></i>
+                            Maintain technical accuracy
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-palette text-warning me-2"></i>
+                            Consistent company branding
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-shield-check text-info me-2"></i>
+                            Reduce manual errors
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-sync-alt text-secondary me-2"></i>
+                            Streamlined workflow
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
