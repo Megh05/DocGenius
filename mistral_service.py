@@ -96,7 +96,7 @@ class MistralService:
             }
             
             response = requests.post(f"{self.base_url}/chat/completions", 
-                                   headers=headers, json=payload, timeout=30)
+                                   headers=headers, json=payload, timeout=15)
             
             if response.status_code == 200:
                 result = response.json()
@@ -157,7 +157,7 @@ class MistralService:
             }
             
             response = requests.post(f"{self.base_url}/chat/completions", 
-                                   headers=headers, json=payload, timeout=30)
+                                   headers=headers, json=payload, timeout=15)
             
             if response.status_code == 200:
                 result = response.json()

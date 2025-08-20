@@ -69,11 +69,13 @@ class PDFProcessor:
             # Apply Mistral field validation if enabled
             try:
                 from flask import session
-                if session.get('enable_field_validation', True) and session.get('mistral_api_key'):
+                if session.get('enable_field_validation', False) and session.get('mistral_api_key'):
                     from mistral_service import MistralService
                     mistral = MistralService()
                     self.logger.info("Applying Mistral field validation and correction")
                     extracted_data = mistral.validate_and_correct_fields(extracted_data)
+            except ImportError:
+                self.logger.debug("Session not available outside Flask context")
             except Exception as mistral_error:
                 self.logger.warning(f"Mistral validation failed, continuing with original data: {mistral_error}")
                 
@@ -90,7 +92,7 @@ class PDFProcessor:
         # Try Mistral OCR enhancement first if enabled
         try:
             from flask import session
-            if session.get('enable_mistral_ocr', True) and session.get('mistral_api_key'):
+            if session.get('enable_mistral_ocr', False) and session.get('mistral_api_key'):
                 from mistral_service import MistralService
                 mistral = MistralService()
                 
@@ -112,11 +114,15 @@ class PDFProcessor:
                             self.logger.info(f"Mistral OCR extracted {len(mistral_text)} characters")
                             os.unlink(temp_img_path)  # Clean up temp file
                             return mistral_text
+                    except Exception as mistral_api_error:
+                        self.logger.warning(f"Mistral API call failed: {mistral_api_error}")
                     finally:
                         if os.path.exists(temp_img_path):
                             os.unlink(temp_img_path)
+        except ImportError:
+            self.logger.debug("Session not available outside Flask context")
         except Exception as mistral_error:
-            self.logger.warning(f"Mistral OCR failed: {mistral_error}, falling back to standard OCR")
+            self.logger.warning(f"Mistral OCR setup failed: {mistral_error}, falling back to standard OCR")
         
         # Fallback to standard OCR if Mistral is not available or fails
         if OCR_AVAILABLE:
@@ -172,11 +178,23 @@ class PDFProcessor:
                     # Apply image processing to improve OCR accuracy
                     gray = cv2.medianBlur(gray, 3)
                     
-                    # Use Tesseract to extract text
-                    page_text = pytesseract.image_to_string(gray, lang='eng+chi_sim')
+                    # Use Tesseract to extract text with timeout and fallback
+                    try:
+                        page_text = pytesseract.image_to_string(gray, lang='eng', timeout=10)
+                    except Exception:
+                        try:
+                            page_text = pytesseract.image_to_string(gray, timeout=10)
+                        except Exception:
+                            page_text = ""
                 else:
                     # Use Tesseract directly on the image without OpenCV preprocessing
-                    page_text = pytesseract.image_to_string(image, lang='eng+chi_sim')
+                    try:
+                        page_text = pytesseract.image_to_string(image, lang='eng', timeout=10)
+                    except Exception:
+                        try:
+                            page_text = pytesseract.image_to_string(image, timeout=10)
+                        except Exception:
+                            page_text = ""
                 
                 text += f"\n--- PAGE {i+1} (OCR) ---\n" + page_text
                 
