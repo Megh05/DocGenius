@@ -54,11 +54,17 @@ class PDFProcessor:
             if 'msds' in file_paths:
                 msds_data = self.extract_msds_data(file_paths['msds'])
                 extracted_data.update(msds_data)
+                # Store full MSDS text for comprehensive document generation
+                msds_text = self.extract_text_from_pdf(file_paths['msds'])
+                extracted_data['msds_text'] = msds_text
             
             # Process TDS
             if 'tds' in file_paths:
                 tds_data = self.extract_tds_data(file_paths['tds'])
                 extracted_data.update(tds_data)
+                # Store full TDS text for comprehensive document generation
+                tds_text = self.extract_text_from_pdf(file_paths['tds'])
+                extracted_data['tds_text'] = tds_text
                 
         except Exception as e:
             self.logger.error(f"Error processing documents: {str(e)}")

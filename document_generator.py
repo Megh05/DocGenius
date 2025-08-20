@@ -231,17 +231,50 @@ class DocumentGenerator:
         
         story.append(Spacer(1, 15))
         
-        # Section 2: Hazards Identification
-        story.append(Paragraph("2. Hazards Identification:", styles['SectionHeader']))
-        story.append(Paragraph("<b>Classification of the substance or mixture:</b>", styles['Normal']))
-        story.append(Paragraph("The product has been classified according to the legislation in force.", styles['Normal']))
-        story.append(Paragraph("Classification according to Regulation (EC) No 1272/2008 as amended.", styles['Normal']))
-        story.append(Paragraph("<b>Label Elements:</b> Not applicable.", styles['Normal']))
-        story.append(Paragraph("<b>Signal Words:</b> Not applicable", styles['Normal']))
-        story.append(Paragraph("<b>Hazard Statement(s):</b> Not applicable", styles['Normal']))
-        story.append(Paragraph("<b>Precautionary Statements:</b> Not applicable", styles['Normal']))
-        
-        story.append(Spacer(1, 15))
+        # Include comprehensive MSDS content from supplier document
+        msds_content = extracted_data.get('msds_text', '')
+        if msds_content and len(msds_content) > 500:
+            # Split the content into sections based on page markers
+            pages = msds_content.split('--- PAGE')
+            section_num = 2
+            
+            for i, page_content in enumerate(pages[1:], 1):  # Skip first empty part
+                if page_content.strip():
+                    # Clean up the page content
+                    clean_content = page_content.replace('(OCR) ---', '').strip()
+                    
+                    # Split into paragraphs and add them
+                    paragraphs = clean_content.split('\n')
+                    current_section = None
+                    
+                    for para in paragraphs:
+                        para = para.strip()
+                        if not para:
+                            continue
+                            
+                        # Check if this looks like a section header
+                        if any(keyword in para.lower() for keyword in ['section', 'hazard', 'composition', 'first aid', 'fire', 'storage', 'handling', 'exposure', 'physical', 'stability', 'toxicological', 'ecological', 'disposal', 'transport', 'regulatory']):
+                            if not para.startswith(f'{section_num}.'):
+                                para = f"{section_num}. {para}"
+                                section_num += 1
+                            story.append(Paragraph(para, styles['SectionHeader']))
+                            current_section = para
+                        else:
+                            # Regular content paragraph
+                            story.append(Paragraph(para, styles['Normal']))
+                    
+                    story.append(Spacer(1, 10))
+        else:
+            # Fallback to basic MSDS template if no comprehensive content available
+            story.append(Paragraph("2. Hazards Identification:", styles['SectionHeader']))
+            story.append(Paragraph("<b>Classification of the substance or mixture:</b>", styles['Normal']))
+            story.append(Paragraph("The product has been classified according to the legislation in force.", styles['Normal']))
+            story.append(Paragraph("Classification according to Regulation (EC) No 1272/2008 as amended.", styles['Normal']))
+            story.append(Paragraph("<b>Label Elements:</b> Not applicable.", styles['Normal']))
+            story.append(Paragraph("<b>Signal Words:</b> Not applicable", styles['Normal']))
+            story.append(Paragraph("<b>Hazard Statement(s):</b> Not applicable", styles['Normal']))
+            story.append(Paragraph("<b>Precautionary Statements:</b> Not applicable", styles['Normal']))
+            story.append(Spacer(1, 15))
         
         # Section 3: Composition
         story.append(Paragraph("3. Composition/Information on Ingredients:", styles['SectionHeader']))
