@@ -254,9 +254,15 @@ small { font-size: var(--font-size-xs); }
   position: relative;
 }
 
-.upload-area:hover {
+.upload-area:hover:not(.processing) {
   border-color: var(--accent);
   background: var(--gray-50);
+}
+
+.upload-area.processing {
+  opacity: 0.7;
+  cursor: wait;
+  pointer-events: none;
 }
 
 .upload-area.dragover {
