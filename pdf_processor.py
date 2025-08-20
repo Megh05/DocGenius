@@ -65,6 +65,17 @@ class PDFProcessor:
                 # Store full TDS text for comprehensive document generation
                 tds_text = self.extract_text_from_pdf(file_paths['tds'])
                 extracted_data['tds_text'] = tds_text
+            
+            # Apply Mistral field validation if enabled
+            try:
+                from flask import session
+                if session.get('enable_field_validation', True) and session.get('mistral_api_key'):
+                    from mistral_service import MistralService
+                    mistral = MistralService()
+                    self.logger.info("Applying Mistral field validation and correction")
+                    extracted_data = mistral.validate_and_correct_fields(extracted_data)
+            except Exception as mistral_error:
+                self.logger.warning(f"Mistral validation failed, continuing with original data: {mistral_error}")
                 
         except Exception as e:
             self.logger.error(f"Error processing documents: {str(e)}")
@@ -76,16 +87,47 @@ class PDFProcessor:
         """Extract text from PDF file using OCR as primary method for best accuracy"""
         text = ""
         
-        # Always try OCR first for most accurate results as requested by user
+        # Try Mistral OCR enhancement first if enabled
+        try:
+            from flask import session
+            if session.get('enable_mistral_ocr', True) and session.get('mistral_api_key'):
+                from mistral_service import MistralService
+                mistral = MistralService()
+                
+                # Convert PDF to image for Mistral OCR
+                from pdf2image import convert_from_path
+                import tempfile
+                
+                images = convert_from_path(file_path, dpi=300, first_page=1, last_page=1)
+                if images:
+                    # Save first page as temporary image for Mistral
+                    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp_img:
+                        images[0].save(temp_img.name, 'JPEG')
+                        temp_img_path = temp_img.name
+                    
+                    try:
+                        self.logger.info(f"Using Mistral OCR enhancement for {file_path}")
+                        mistral_text = mistral.enhance_ocr_extraction(temp_img_path)
+                        if len(mistral_text.strip()) > 100:  # Mistral found substantial content
+                            self.logger.info(f"Mistral OCR extracted {len(mistral_text)} characters")
+                            os.unlink(temp_img_path)  # Clean up temp file
+                            return mistral_text
+                    finally:
+                        if os.path.exists(temp_img_path):
+                            os.unlink(temp_img_path)
+        except Exception as mistral_error:
+            self.logger.warning(f"Mistral OCR failed: {mistral_error}, falling back to standard OCR")
+        
+        # Fallback to standard OCR if Mistral is not available or fails
         if OCR_AVAILABLE:
             try:
-                self.logger.info(f"Using OCR for {file_path} as primary extraction method")
+                self.logger.info(f"Using standard OCR for {file_path}")
                 text = self.extract_text_with_ocr(file_path)
                 if len(text.strip()) > 50:  # OCR found substantial content
-                    self.logger.info(f"OCR successfully extracted {len(text)} characters")
+                    self.logger.info(f"Standard OCR extracted {len(text)} characters")
                     return text
             except Exception as ocr_error:
-                self.logger.warning(f"OCR failed: {str(ocr_error)}, falling back to pdfplumber")
+                self.logger.warning(f"Standard OCR failed: {str(ocr_error)}, falling back to pdfplumber")
         
         # Fallback to pdfplumber if OCR fails or not available
         try:

@@ -3,12 +3,13 @@ import json
 import zipfile
 import tempfile
 from datetime import datetime
-from flask import render_template, request, redirect, url_for, flash, send_file, current_app, jsonify
+from flask import render_template, request, redirect, url_for, flash, send_file, current_app, jsonify, session
 from werkzeug.utils import secure_filename
 from app import app, db
 from models import DocumentSet, TestResult
 from pdf_processor import PDFProcessor
 from document_generator import DocumentGenerator
+from mistral_service import MistralService
 
 ALLOWED_EXTENSIONS = {'pdf'}
 
@@ -450,3 +451,61 @@ def download_zip(doc_set_id):
 def too_large(e):
     flash('File is too large. Maximum size is 16MB.', 'error')
     return redirect(url_for('upload'))
+
+# Mistral API Settings Routes
+@app.route('/api/test-mistral-connection', methods=['POST'])
+def test_mistral_connection():
+    """Test Mistral API connection"""
+    try:
+        data = request.get_json()
+        api_key = data.get('api_key')
+        
+        if not api_key:
+            return jsonify({'success': False, 'error': 'API key is required'}), 400
+        
+        mistral_service = MistralService()
+        result = mistral_service.test_connection(api_key)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        current_app.logger.error(f"Error testing Mistral connection: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/save-settings', methods=['POST'])
+def save_settings():
+    """Save Mistral settings to session"""
+    try:
+        data = request.get_json()
+        
+        # Store settings in session
+        session['mistral_api_key'] = data.get('mistral_api_key', '')
+        session['enable_mistral_ocr'] = data.get('enable_mistral_ocr', True)
+        session['enable_field_validation'] = data.get('enable_field_validation', True)
+        
+        # Also set environment variable for current session
+        if data.get('mistral_api_key'):
+            os.environ['MISTRAL_API_KEY'] = data.get('mistral_api_key')
+        
+        return jsonify({'success': True, 'message': 'Settings saved successfully'})
+        
+    except Exception as e:
+        current_app.logger.error(f"Error saving settings: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/get-settings', methods=['GET'])
+def get_settings():
+    """Get current Mistral settings"""
+    try:
+        settings = {
+            'success': True,
+            'enable_mistral_ocr': session.get('enable_mistral_ocr', True),
+            'enable_field_validation': session.get('enable_field_validation', True),
+            'has_api_key': bool(session.get('mistral_api_key'))
+        }
+        
+        return jsonify(settings)
+        
+    except Exception as e:
+        current_app.logger.error(f"Error getting settings: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500

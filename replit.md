@@ -29,6 +29,25 @@ Preferred communication style: Simple, everyday language.
   - COA: 1 page, 1,289+ characters extracted
 - **Data Quality**: Product names, INCI names, CAS numbers, supplier info, molecular formulas all extracting accurately
 
+### Mistral AI Integration
+- **Date**: August 20, 2025
+- **Feature**: Added Mistral AI for enhanced OCR and field validation
+- **Implementation**:
+  - Settings panel with gear icon in navigation for API key management
+  - MistralService class for OCR enhancement and field validation
+  - Integrated Pixtral-12B model for advanced document image analysis
+  - Mistral-Large for intelligent field validation and error correction
+  - Session-based settings storage with API key security
+- **Key Features**:
+  - Enhanced OCR using Mistral vision model (Pixtral-12B)
+  - Intelligent field validation and automatic error correction
+  - API connection testing with real-time feedback
+  - User-configurable OCR and validation toggles
+  - Secure API key handling with masked input fields
+- **Dependencies Added**: requests library for Mistral API communication
+- **Status**: ✅ COMPLETE - Mistral integration functional
+- **Benefits**: Improved accuracy for chemical document processing, automatic error detection and correction
+
 ## System Architecture
 
 ### Frontend Architecture
