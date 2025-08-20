@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // File selection handler - only trigger on actual file input change
         input.addEventListener('change', (e) => {
-            e.stopPropagation();
             const file = e.target.files[0];
             if (file) {
                 handleFileSelection(file, placeholder, fileInfo, filename, area);
@@ -23,24 +22,26 @@ document.addEventListener('DOMContentLoaded', function() {
             area.classList.remove('processing');
         });
 
-        // Click handler - prevent double file dialog
+        // Click handler - simplified approach to prevent double prompts
+        let clickTimeout = null;
         area.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
             // Don't trigger if clicking on remove button or if file is already selected
             if (e.target === removeBtn || e.target.closest('.remove-file') || fileInfo && !fileInfo.classList.contains('d-none')) {
                 return;
             }
             
-            // Only trigger input click if no file is selected and not processing
-            if ((!input.files || input.files.length === 0) && !area.classList.contains('processing')) {
-                area.classList.add('processing');
+            // Prevent multiple rapid clicks using debouncing
+            if (clickTimeout) {
+                return;
+            }
+            
+            // Only trigger input click if no file is selected
+            if (!input.files || input.files.length === 0) {
+                clickTimeout = setTimeout(() => {
+                    clickTimeout = null;
+                }, 500); // Prevent clicks for 500ms
+                
                 input.click();
-                // Remove processing flag after a short delay
-                setTimeout(() => {
-                    area.classList.remove('processing');
-                }, 500);
             }
         });
 
