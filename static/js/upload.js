@@ -1,10 +1,10 @@
-// Upload functionality and form handling
+// Enhanced upload functionality with compact design
 document.addEventListener('DOMContentLoaded', function() {
     const uploadForm = document.getElementById('uploadForm');
     const submitBtn = document.getElementById('submitBtn');
     const uploadAreas = document.querySelectorAll('.upload-area');
 
-    // Handle file uploads
+    // Handle file uploads - Fixed double prompt issue
     uploadAreas.forEach(area => {
         const input = area.querySelector('.file-input');
         const placeholder = area.querySelector('.upload-placeholder');
@@ -12,15 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const filename = fileInfo.querySelector('.filename');
         const removeBtn = fileInfo.querySelector('.remove-file');
 
-        // Click to upload
-        area.addEventListener('click', (e) => {
-            if (e.target === removeBtn || e.target.closest('.remove-file')) {
-                return;
-            }
-            input.click();
-        });
-
-        // File selection
+        // File selection handler - only trigger on actual file input change
         input.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -28,7 +20,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Drag and drop
+        // Click handler - prevent double file dialog
+        area.addEventListener('click', (e) => {
+            // Don't trigger if clicking on remove button or if file is already selected
+            if (e.target === removeBtn || e.target.closest('.remove-file') || fileInfo && !fileInfo.classList.contains('d-none')) {
+                return;
+            }
+            // Only trigger input click if no file is selected
+            if (!input.files || input.files.length === 0) {
+                input.click();
+            }
+        });
+
+        // Drag and drop functionality
         area.addEventListener('dragover', (e) => {
             e.preventDefault();
             area.classList.add('dragover');
@@ -36,7 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         area.addEventListener('dragleave', (e) => {
             e.preventDefault();
-            area.classList.remove('dragover');
+            if (!area.contains(e.relatedTarget)) {
+                area.classList.remove('dragover');
+            }
         });
 
         area.addEventListener('drop', (e) => {
@@ -47,154 +53,230 @@ document.addEventListener('DOMContentLoaded', function() {
             if (files.length > 0) {
                 const file = files[0];
                 if (file.type === 'application/pdf') {
-                    input.files = files;
+                    // Create a new FileList-like object
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
                     handleFileSelection(file, placeholder, fileInfo, filename, area);
                 } else {
-                    showAlert('Please select a PDF file.', 'error');
+                    showAlert('Please select a PDF file only.', 'warning');
                 }
             }
         });
 
-        // Remove file
-        removeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            input.value = '';
-            placeholder.classList.remove('d-none');
-            fileInfo.classList.add('d-none');
-            area.classList.remove('file-selected');
-        });
+        // Remove file handler
+        if (removeBtn) {
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                input.value = '';
+                input.files = null;
+                placeholder.classList.remove('d-none');
+                fileInfo.classList.add('d-none');
+                area.classList.remove('file-selected', 'dragover');
+            });
+        }
     });
 
     function handleFileSelection(file, placeholder, fileInfo, filename, area) {
+        // Validate file type
         if (file.type !== 'application/pdf') {
-            showAlert('Please select a PDF file.', 'error');
+            showAlert('Please select a PDF file only.', 'warning');
             return;
         }
 
-        if (file.size > 16 * 1024 * 1024) { // 16MB
-            showAlert('File size must be less than 16MB.', 'error');
+        // Validate file size (16MB limit)
+        if (file.size > 16 * 1024 * 1024) {
+            showAlert('File size must be less than 16MB.', 'warning');
             return;
         }
 
+        // Update UI
         placeholder.classList.add('d-none');
         fileInfo.classList.remove('d-none');
-        filename.textContent = file.name;
+        filename.textContent = truncateFilename(file.name, 20);
         area.classList.add('file-selected');
+        
+        // Add success visual feedback
+        area.style.borderColor = 'var(--success)';
+        setTimeout(() => {
+            area.style.borderColor = '';
+        }, 2000);
     }
 
-    // Form submission
+    function truncateFilename(filename, maxLength) {
+        if (filename.length <= maxLength) return filename;
+        const extension = filename.split('.').pop();
+        const name = filename.substring(0, filename.lastIndexOf('.'));
+        const truncatedName = name.substring(0, maxLength - extension.length - 4) + '...';
+        return truncatedName + '.' + extension;
+    }
+
+    // Form submission handler
     if (uploadForm) {
         uploadForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+            // Don't prevent default - let it submit normally to avoid issues
             
-            // Validate form
+            // Validate form first
             if (!validateForm()) {
-                return;
+                e.preventDefault();
+                return false;
             }
 
             // Show loading state
             showLoadingState();
-
-            // Submit form
-            const formData = new FormData(uploadForm);
             
-            fetch(uploadForm.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    return response.text();
-                }
-            })
-            .then(html => {
-                if (html) {
-                    // If we get HTML back, it means there was an error
-                    document.body.innerHTML = html;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('An error occurred while processing your documents. Please try again.', 'error');
-                hideLoadingState();
-            });
+            // Form will submit normally, no need for fetch API
         });
     }
 
     function validateForm() {
-        const productName = document.getElementById('company_product_name').value.trim();
-        const coaFile = document.getElementById('supplier_coa').files[0];
-        const msdsFile = document.getElementById('supplier_msds').files[0];
-        const tdsFile = document.getElementById('supplier_tds').files[0];
+        const productName = document.getElementById('company_product_name');
+        const coaFile = document.getElementById('supplier_coa');
+        const msdsFile = document.getElementById('supplier_msds');
+        const tdsFile = document.getElementById('supplier_tds');
 
-        if (!productName) {
-            showAlert('Please enter a company product name.', 'error');
-            document.getElementById('company_product_name').focus();
-            return false;
+        // Clear previous validation states
+        clearValidationStates();
+
+        let isValid = true;
+
+        // Validate product name
+        if (!productName.value.trim()) {
+            showFieldError(productName, 'Product name is required');
+            isValid = false;
         }
 
-        if (!coaFile) {
-            showAlert('Please select a COA file.', 'error');
-            return false;
+        // Validate files
+        if (!coaFile.files || coaFile.files.length === 0) {
+            showAlert('Please select a Certificate of Analysis (COA) file.', 'warning');
+            highlightUploadArea(coaFile);
+            isValid = false;
         }
 
-        if (!msdsFile) {
-            showAlert('Please select an MSDS file.', 'error');
-            return false;
+        if (!msdsFile.files || msdsFile.files.length === 0) {
+            showAlert('Please select a Material Safety Data Sheet (MSDS) file.', 'warning');
+            highlightUploadArea(msdsFile);
+            isValid = false;
         }
 
-        if (!tdsFile) {
-            showAlert('Please select a TDS file.', 'error');
-            return false;
+        if (!tdsFile.files || tdsFile.files.length === 0) {
+            showAlert('Please select a Technical Data Sheet (TDS) file.', 'warning');
+            highlightUploadArea(tdsFile);
+            isValid = false;
         }
 
-        return true;
+        return isValid;
+    }
+
+    function clearValidationStates() {
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+        document.querySelectorAll('.invalid-feedback').forEach(el => {
+            el.remove();
+        });
+        document.querySelectorAll('.upload-area').forEach(area => {
+            area.style.borderColor = '';
+        });
+    }
+
+    function showFieldError(field, message) {
+        field.classList.add('is-invalid');
+        const feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback text-xs';
+        feedback.textContent = message;
+        field.parentNode.appendChild(feedback);
+        field.focus();
+    }
+
+    function highlightUploadArea(input) {
+        const uploadArea = input.closest('.upload-area');
+        if (uploadArea) {
+            uploadArea.style.borderColor = 'var(--danger)';
+            setTimeout(() => {
+                uploadArea.style.borderColor = '';
+            }, 3000);
+        }
     }
 
     function showLoadingState() {
-        submitBtn.disabled = true;
-        submitBtn.querySelector('.spinner-border').classList.remove('d-none');
-        submitBtn.querySelector('i.fas').classList.add('d-none');
-        
-        const form = document.getElementById('uploadForm');
-        form.classList.add('processing');
-        
-        // Change button text
-        const buttonText = submitBtn.childNodes[submitBtn.childNodes.length - 1];
-        buttonText.textContent = ' Processing...';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            const spinner = submitBtn.querySelector('.spinner-border');
+            const icon = submitBtn.querySelector('i.fas');
+            
+            if (spinner) spinner.classList.remove('d-none');
+            if (icon) icon.classList.add('d-none');
+            
+            // Update button text
+            const textNode = Array.from(submitBtn.childNodes).find(node => 
+                node.nodeType === Node.TEXT_NODE && node.textContent.trim()
+            );
+            if (textNode) {
+                textNode.textContent = ' Processing Documents...';
+            }
+            
+            // Disable form
+            const form = document.getElementById('uploadForm');
+            if (form) {
+                form.classList.add('processing');
+                form.style.opacity = '0.7';
+                form.style.pointerEvents = 'none';
+            }
+        }
     }
 
     function hideLoadingState() {
-        submitBtn.disabled = false;
-        submitBtn.querySelector('.spinner-border').classList.add('d-none');
-        submitBtn.querySelector('i.fas').classList.remove('d-none');
-        
-        const form = document.getElementById('uploadForm');
-        form.classList.remove('processing');
-        
-        // Restore button text
-        const buttonText = submitBtn.childNodes[submitBtn.childNodes.length - 1];
-        buttonText.textContent = ' Process Documents';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            const spinner = submitBtn.querySelector('.spinner-border');
+            const icon = submitBtn.querySelector('i.fas');
+            
+            if (spinner) spinner.classList.add('d-none');
+            if (icon) icon.classList.remove('d-none');
+            
+            // Restore button text
+            const textNode = Array.from(submitBtn.childNodes).find(node => 
+                node.nodeType === Node.TEXT_NODE
+            );
+            if (textNode) {
+                textNode.textContent = ' Process Documents';
+            }
+            
+            // Re-enable form
+            const form = document.getElementById('uploadForm');
+            if (form) {
+                form.classList.remove('processing');
+                form.style.opacity = '';
+                form.style.pointerEvents = '';
+            }
+        }
     }
 
-    function showAlert(message, type) {
+    function showAlert(message, type = 'info') {
         // Remove existing alerts
-        const existingAlerts = document.querySelectorAll('.alert');
-        existingAlerts.forEach(alert => alert.remove());
+        document.querySelectorAll('.alert').forEach(alert => alert.remove());
 
         // Create new alert
         const alertDiv = document.createElement('div');
         alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+        alertDiv.style.position = 'fixed';
+        alertDiv.style.top = '20px';
+        alertDiv.style.right = '20px';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.style.minWidth = '300px';
         alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="d-flex align-items-center">
+                ${getAlertIcon(type)}
+                <div class="ms-2">${message}</div>
+            </div>
+            <button type="button" class="btn-close btn-close-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
 
-        // Insert at the top of main content
-        const main = document.querySelector('main.container');
-        main.insertBefore(alertDiv, main.firstChild);
+        // Append to body
+        document.body.appendChild(alertDiv);
 
         // Auto-dismiss after 5 seconds
         setTimeout(() => {
@@ -204,29 +286,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // File size formatting helper
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // Progress tracking (if needed for future enhancements)
-    function updateProgress(step, total) {
-        const progressSteps = document.querySelectorAll('.progress-step');
-        progressSteps.forEach((stepEl, index) => {
-            if (index < step) {
-                stepEl.classList.add('completed');
-                stepEl.classList.remove('active');
-            } else if (index === step) {
-                stepEl.classList.add('active');
-                stepEl.classList.remove('completed');
-            } else {
-                stepEl.classList.remove('active', 'completed');
-            }
-        });
+    function getAlertIcon(type) {
+        const icons = {
+            success: '<i class="fas fa-check-circle text-success"></i>',
+            warning: '<i class="fas fa-exclamation-triangle text-warning"></i>',
+            danger: '<i class="fas fa-exclamation-circle text-danger"></i>',
+            error: '<i class="fas fa-exclamation-circle text-danger"></i>',
+            info: '<i class="fas fa-info-circle text-info"></i>'
+        };
+        return icons[type] || icons.info;
     }
 
     // Initialize tooltips if Bootstrap is available
@@ -236,22 +304,91 @@ document.addEventListener('DOMContentLoaded', function() {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
+
+    // File progress visualization
+    function updateUploadProgress(fileType, progress) {
+        const progressBar = document.querySelector(`#${fileType}-progress`);
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+            progressBar.setAttribute('aria-valuenow', progress);
+        }
+    }
 });
 
 // Global utility functions
 window.downloadFile = function(url, filename) {
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename;
+    link.download = filename || 'download';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+window.downloadAllAsZip = function(docSetId) {
+    const link = document.createElement('a');
+    link.href = `/download-zip/${docSetId}`;
+    link.download = `documents_${docSetId}.zip`;
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 };
 
 window.copyToClipboard = function(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        console.log('Copied to clipboard');
-    }).catch(function(err) {
-        console.error('Could not copy text: ', err);
-    });
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            showToast('Copied to clipboard', 'success');
+        }).catch(function(err) {
+            console.error('Could not copy text: ', err);
+            fallbackCopyTextToClipboard(text);
+        });
+    } else {
+        fallbackCopyTextToClipboard(text);
+    }
 };
+
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showToast('Copied to clipboard', 'success');
+    } catch (err) {
+        console.error('Fallback: Could not copy text: ', err);
+        showToast('Could not copy text', 'error');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} position-fixed`;
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '9999';
+    toast.style.minWidth = '250px';
+    toast.innerHTML = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}

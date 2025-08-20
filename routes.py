@@ -1,5 +1,7 @@
 import os
 import json
+import zipfile
+import tempfile
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, send_file, current_app, jsonify
 from werkzeug.utils import secure_filename
@@ -15,6 +17,11 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
+    # Redirect to upload page as the main entry point
+    return redirect(url_for('upload'))
+
+@app.route('/home')
+def home():
     recent_documents = DocumentSet.query.order_by(DocumentSet.created_at.desc()).limit(5).all()
     return render_template('index.html', recent_documents=recent_documents)
 
@@ -400,6 +407,44 @@ def download(doc_set_id, doc_type):
     
     filename = f"NTCB_{doc_type.upper()}_{doc_set.company_product_name.replace(' ', '_')}.pdf"
     return send_file(file_path, as_attachment=True, download_name=filename)
+
+@app.route('/processed')
+def processed_documents():
+    documents = DocumentSet.query.order_by(DocumentSet.created_at.desc()).all()
+    return render_template('processed_documents.html', documents=documents)
+
+@app.route('/download-zip/<int:doc_set_id>')
+def download_zip(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    
+    # Create a temporary zip file
+    temp_dir = tempfile.mkdtemp()
+    zip_path = os.path.join(temp_dir, f"NTCB_Documents_{doc_set.company_product_name.replace(' ', '_')}.zip")
+    
+    try:
+        with zipfile.ZipFile(zip_path, 'w') as zip_file:
+            # Add COA if exists
+            if doc_set.generated_coa_path and os.path.exists(doc_set.generated_coa_path):
+                coa_name = f"NTCB_COA_{doc_set.company_product_name.replace(' ', '_')}.pdf"
+                zip_file.write(doc_set.generated_coa_path, coa_name)
+            
+            # Add MSDS if exists
+            if doc_set.generated_msds_path and os.path.exists(doc_set.generated_msds_path):
+                msds_name = f"NTCB_MSDS_{doc_set.company_product_name.replace(' ', '_')}.pdf"
+                zip_file.write(doc_set.generated_msds_path, msds_name)
+            
+            # Add TDS if exists
+            if doc_set.generated_tds_path and os.path.exists(doc_set.generated_tds_path):
+                tds_name = f"NTCB_TDS_{doc_set.company_product_name.replace(' ', '_')}.pdf"
+                zip_file.write(doc_set.generated_tds_path, tds_name)
+        
+        zip_filename = f"NTCB_Documents_{doc_set.company_product_name.replace(' ', '_')}.zip"
+        return send_file(zip_path, as_attachment=True, download_name=zip_filename)
+        
+    except Exception as e:
+        current_app.logger.error(f"Error creating zip file: {str(e)}")
+        flash('Error creating download package', 'error')
+        return redirect(url_for('results', doc_set_id=doc_set_id))
 
 @app.errorhandler(413)
 def too_large(e):

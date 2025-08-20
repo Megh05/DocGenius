@@ -3,12 +3,12 @@
 {% block title %}Edit & Preview - Chemical Document Pro{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Progress Pipeline -->
-    <div class="row mb-4">
+<div class="container-fluid py-3">
+    <!-- Compact Progress Pipeline -->
+    <div class="row mb-3">
         <div class="col-12">
             <div class="card">
-                <div class="card-body py-3">
+                <div class="card-body py-2">
                     <div class="pipeline-progress">
                         <div class="progress-step completed">
                             <div class="step-icon">
@@ -26,19 +26,13 @@
                             <div class="step-icon">
                                 <i class="fas fa-edit"></i>
                             </div>
-                            <div class="step-label">Edit & Preview</div>
+                            <div class="step-label">Edit</div>
                         </div>
                         <div class="progress-step">
                             <div class="step-icon">
                                 <i class="fas fa-check"></i>
                             </div>
                             <div class="step-label">Approve</div>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-icon">
-                                <i class="fas fa-signature"></i>
-                            </div>
-                            <div class="step-label">Sign</div>
                         </div>
                         <div class="progress-step">
                             <div class="step-icon">
@@ -52,281 +46,292 @@
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Edit Panel -->
-        <div class="col-lg-4">
+    <div class="row g-3">
+        <!-- Compact Edit Panel -->
+        <div class="col-lg-5">
             <div class="card sticky-top">
-                <div class="card-header">
+                <div class="card-header py-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title">
+                        <h6 class="card-title mb-0">
                             <i class="fas fa-edit me-2"></i>
                             Edit Document Data
-                        </h5>
+                        </h6>
                         <span class="document-type-indicator" id="currentDocumentType">COA Fields</span>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3">
                     <div class="edit-panel">
                         <form id="editForm" onsubmit="return false;">
                             <!-- Common Fields -->
-                            <div id="commonFields">
-                                <div class="mb-4">
-                                    <h6 class="text-muted mb-3">Product Information</h6>
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label">Company Product Name</label>
-                                        <input type="text" class="form-control editable-field" 
-                                               data-field="company_product_name" 
-                                               value="{{ doc_set.company_product_name }}"
-                                               placeholder="Enter product name">
-                                    </div>
+                            <div id="commonFields" class="mb-3">
+                                <h6 class="text-muted mb-2 text-xs">Product Information</h6>
+                                
+                                <div class="mb-2">
+                                    <label class="form-label text-sm">Company Product Name</label>
+                                    <input type="text" class="form-control form-control-sm editable-field" 
+                                           data-field="company_product_name" 
+                                           value="{{ doc_set.company_product_name }}"
+                                           placeholder="Enter product name">
+                                </div>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Supplier Name</label>
-                                        <input type="text" class="form-control editable-field" 
-                                               data-field="supplier_name" 
-                                               value="{{ doc_set.supplier_name or '' }}"
-                                               placeholder="Enter supplier name">
-                                    </div>
+                                <div class="mb-2">
+                                    <label class="form-label text-sm">Supplier Name</label>
+                                    <input type="text" class="form-control form-control-sm editable-field" 
+                                           data-field="supplier_name" 
+                                           value="{{ doc_set.supplier_name or '' }}"
+                                           placeholder="Enter supplier name">
                                 </div>
                             </div>
 
                             <!-- COA Specific Fields -->
                             <div id="coaFields" class="document-fields">
-                                <div class="mb-4">
-                                    <h6 class="text-muted mb-3">Certificate Details</h6>
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2 text-xs">Certificate Details</h6>
                                     
-                                    <div class="mb-3">
-                                        <label class="form-label">INCI Name</label>
-                                        <input type="text" class="form-control editable-field" 
+                                    <div class="mb-2">
+                                        <label class="form-label text-sm">INCI Name</label>
+                                        <input type="text" class="form-control form-control-sm editable-field" 
                                                data-field="inci_name" 
                                                value="{{ doc_set.inci_name or '' }}"
                                                placeholder="Enter INCI name">
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Batch Number</label>
-                                        <input type="text" class="form-control editable-field" 
+                                    <div class="mb-2">
+                                        <label class="form-label text-sm">Batch Number</label>
+                                        <input type="text" class="form-control form-control-sm editable-field" 
                                                data-field="batch_number" 
                                                value="{{ doc_set.batch_number or '' }}"
                                                placeholder="Enter batch number">
                                     </div>
 
-                                    <div class="row g-2">
+                                    <div class="row g-2 mb-2">
                                         <div class="col-6">
-                                            <label class="form-label">Manufacturing Date</label>
-                                            <input type="date" class="form-control editable-field" 
+                                            <label class="form-label text-sm">Mfg. Date</label>
+                                            <input type="date" class="form-control form-control-sm editable-field" 
                                                    data-field="manufacturing_date" 
                                                    value="{% if doc_set.manufacturing_date %}{{ doc_set.manufacturing_date.strftime('%Y-%m-%d') }}{% endif %}">
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label">Expiry Date</label>
-                                            <input type="date" class="form-control editable-field" 
+                                            <label class="form-label text-sm">Exp. Date</label>
+                                            <input type="date" class="form-control form-control-sm editable-field" 
                                                    data-field="expiry_date" 
                                                    value="{% if doc_set.expiry_date %}{{ doc_set.expiry_date.strftime('%Y-%m-%d') }}{% endif %}">
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Test Results -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="text-muted mb-0">Test Results</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTestResult()">
+                                <!-- Test Results Table -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="text-muted mb-0 text-xs">Test Results</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary btn-xs" onclick="addTestResult()">
                                             <i class="fas fa-plus me-1"></i>Add
                                         </button>
                                     </div>
                                     
-                                    <div id="testResultsContainer">
-                                        {% for test in doc_set.test_results %}
-                                        <div class="test-result-item">
-                                            <div class="row g-2 mb-2">
-                                                <div class="col-6">
-                                                    <label class="form-label small">Parameter</label>
-                                                    <input type="text" class="form-control form-control-sm test-parameter" 
-                                                           value="{{ test.parameter_name }}" 
-                                                           data-test-id="{{ test.id }}">
-                                                </div>
-                                                <div class="col-6">
-                                                    <label class="form-label small">Result</label>
-                                                    <div class="input-group input-group-sm">
-                                                        <input type="text" class="form-control test-result" 
+                                    <div class="table-responsive">
+                                        <table class="table table-sm editable-table" id="testResultsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-xs">Parameter</th>
+                                                    <th class="text-xs">Result</th>
+                                                    <th class="text-xs w-auto">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for test in doc_set.test_results %}
+                                                <tr data-test-id="{{ test.id }}">
+                                                    <td>
+                                                        <input type="text" class="form-control form-control-sm editable-cell test-parameter border-0" 
+                                                               value="{{ test.parameter_name }}" 
+                                                               data-test-id="{{ test.id }}">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control form-control-sm editable-cell test-result border-0" 
                                                                value="{{ test.result }}"
                                                                data-test-id="{{ test.id }}">
-                                                        <button type="button" class="btn btn-outline-danger remove-test-btn"
+                                                    </td>
+                                                    <td class="table-actions">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm remove-test-btn"
                                                                 data-test-id="{{ test.id }}">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- MSDS Specific Fields -->
                             <div id="msdsFields" class="document-fields" style="display: none;">
-                                <div class="mb-4">
-                                    <h6 class="text-muted mb-3">Chemical Information</h6>
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2 text-xs">Chemical Information</h6>
                                     
-                                    <div class="mb-3">
-                                        <label class="form-label">CAS Number</label>
-                                        <input type="text" class="form-control editable-field" 
+                                    <div class="mb-2">
+                                        <label class="form-label text-sm">CAS Number</label>
+                                        <input type="text" class="form-control form-control-sm editable-field" 
                                                data-field="cas_number" 
                                                value="{{ doc_set.cas_number or '' }}"
                                                placeholder="Enter CAS number">
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Molecular Formula</label>
-                                        <input type="text" class="form-control editable-field" 
+                                    <div class="mb-2">
+                                        <label class="form-label text-sm">Molecular Formula</label>
+                                        <input type="text" class="form-control form-control-sm editable-field" 
                                                data-field="molecular_formula" 
                                                value="{{ doc_set.molecular_formula or '' }}"
                                                placeholder="Enter molecular formula">
                                     </div>
                                 </div>
 
-                                <!-- Physical Properties -->
-                                <div class="mb-4">
-                                    <h6 class="text-muted mb-3">Physical Properties</h6>
+                                <!-- Physical Properties Table -->
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2 text-xs">Physical Properties</h6>
                                     
-                                    {% set physical_props = extracted_data.get('physical_properties', {}) %}
-                                    <div class="mb-3">
-                                        <label class="form-label">Appearance</label>
-                                        <input type="text" class="form-control editable-field" 
-                                               data-field="physical_properties.appearance" 
-                                               value="{{ physical_props.get('appearance', '') }}"
-                                               placeholder="Enter appearance">
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Solubility</label>
-                                        <input type="text" class="form-control editable-field" 
-                                               data-field="physical_properties.solubility" 
-                                               value="{{ physical_props.get('solubility', '') }}"
-                                               placeholder="Enter solubility">
-                                    </div>
-                                </div>
-
-                                <!-- Safety Data -->
-                                <div class="mb-4">
-                                    <h6 class="text-muted mb-3">Safety Information</h6>
-                                    
-                                    {% set safety_data = extracted_data.get('safety_data', {}) %}
-                                    <div class="mb-3">
-                                        <label class="form-label">pH Value</label>
-                                        <input type="text" class="form-control editable-field" 
-                                               data-field="safety_data.ph" 
-                                               value="{{ safety_data.get('ph', '') }}"
-                                               placeholder="Enter pH value">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm editable-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-xs">Property</th>
+                                                    <th class="text-xs">Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% set physical_props = extracted_data.get('physical_properties', {}) %}
+                                                <tr>
+                                                    <td class="text-sm fw-medium">Appearance</td>
+                                                    <td>
+                                                        <input type="text" class="form-control form-control-sm editable-cell border-0" 
+                                                               data-field="physical_properties.appearance" 
+                                                               value="{{ physical_props.get('appearance', '') }}"
+                                                               placeholder="Enter appearance">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-sm fw-medium">Solubility</td>
+                                                    <td>
+                                                        <input type="text" class="form-control form-control-sm editable-cell border-0" 
+                                                               data-field="physical_properties.solubility" 
+                                                               value="{{ physical_props.get('solubility', '') }}"
+                                                               placeholder="Enter solubility">
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- TDS Specific Fields -->
                             <div id="tdsFields" class="document-fields" style="display: none;">
-                                <div class="mb-4">
-                                    <h6 class="text-muted mb-3">Technical Information</h6>
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2 text-xs">Technical Information</h6>
                                     
-                                    <div class="mb-3">
-                                        <label class="form-label">Recommended Use Level</label>
-                                        <input type="text" class="form-control editable-field" 
+                                    <div class="mb-2">
+                                        <label class="form-label text-sm">Use Level</label>
+                                        <input type="text" class="form-control form-control-sm editable-field" 
                                                data-field="recommended_use_level" 
                                                value="{{ extracted_data.get('recommended_use_level', '') }}"
                                                placeholder="Enter use level">
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Use Method</label>
-                                        <textarea class="form-control editable-field" 
-                                                  data-field="use_method" 
-                                                  rows="2"
-                                                  placeholder="Enter use method">{{ extracted_data.get('use_method', '') }}</textarea>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Storage Conditions</label>
-                                        <textarea class="form-control editable-field" 
+                                    <div class="mb-2">
+                                        <label class="form-label text-sm">Storage Conditions</label>
+                                        <textarea class="form-control form-control-sm editable-field" 
                                                   data-field="storage_conditions" 
                                                   rows="2"
                                                   placeholder="Enter storage conditions">{{ extracted_data.get('storage_conditions', '') }}</textarea>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Shelf Life</label>
-                                        <input type="text" class="form-control editable-field" 
+                                    <div class="mb-2">
+                                        <label class="form-label text-sm">Shelf Life</label>
+                                        <input type="text" class="form-control form-control-sm editable-field" 
                                                data-field="shelf_life" 
                                                value="{{ extracted_data.get('shelf_life', '') }}"
                                                placeholder="Enter shelf life">
                                     </div>
                                 </div>
 
-                                <!-- Specifications -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="text-muted mb-0">Technical Specifications</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSpecification()">
+                                <!-- Specifications Table -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="text-muted mb-0 text-xs">Specifications</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary btn-xs" onclick="addSpecification()">
                                             <i class="fas fa-plus me-1"></i>Add
                                         </button>
                                     </div>
                                     
-                                    <div id="specificationsContainer">
-                                        {% set specs = extracted_data.get('specifications', {}) %}
-                                        {% for spec_name, spec_value in specs.items() %}
-                                        <div class="specification-item">
-                                            <div class="row g-2 mb-2">
-                                                <div class="col-6">
-                                                    <label class="form-label small">Name</label>
-                                                    <input type="text" class="form-control form-control-sm spec-name" 
-                                                           value="{{ spec_name }}" 
-                                                           data-original-name="{{ spec_name }}">
-                                                </div>
-                                                <div class="col-6">
-                                                    <label class="form-label small">Value</label>
-                                                    <div class="input-group input-group-sm">
-                                                        <input type="text" class="form-control spec-value" 
+                                    <div class="table-responsive">
+                                        <table class="table table-sm editable-table" id="specificationsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-xs">Specification</th>
+                                                    <th class="text-xs">Value</th>
+                                                    <th class="text-xs w-auto">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% set specs = extracted_data.get('specifications', {}) %}
+                                                {% for spec_name, spec_value in specs.items() %}
+                                                <tr>
+                                                    <td>
+                                                        <input type="text" class="form-control form-control-sm editable-cell spec-name border-0" 
+                                                               value="{{ spec_name }}" 
+                                                               data-original-name="{{ spec_name }}">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control form-control-sm editable-cell spec-value border-0" 
                                                                value="{{ spec_value }}"
                                                                data-spec-name="{{ spec_name }}">
-                                                        <button type="button" class="btn btn-outline-danger remove-spec-btn">
+                                                    </td>
+                                                    <td class="table-actions">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm remove-spec-btn">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
                         </form>
                     </div>
 
-                    <!-- Action Buttons -->
+                    <!-- Compact Action Buttons -->
                     <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-success" onclick="approveDocuments()">
+                        <button type="button" class="btn btn-success btn-sm" onclick="approveDocuments()">
                             <i class="fas fa-check me-2"></i>
                             Approve Documents
                         </button>
-                        <a href="{{ url_for('upload') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>
-                            Back to Upload
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('upload') }}" class="btn btn-secondary btn-sm flex-fill">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Back
+                            </a>
+                            <button type="button" class="btn btn-outline-primary btn-sm flex-fill" onclick="downloadAllAsZip({{ doc_set.id }})">
+                                <i class="fas fa-download me-1"></i>
+                                Download ZIP
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Preview Panel -->
-        <div class="col-lg-8">
+        <!-- Compact Preview Panel -->
+        <div class="col-lg-7">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header py-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title">
+                        <h6 class="card-title mb-0">
                             <i class="fas fa-eye me-2"></i>
                             Document Preview
-                        </h5>
+                        </h6>
                         <!-- Document Type Switcher -->
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-outline-primary active" 
@@ -352,7 +357,7 @@
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
-                                <div class="mt-2 text-muted">Updating preview...</div>
+                                <div class="mt-2 text-muted text-sm">Updating preview...</div>
                             </div>
                         </div>
                         
@@ -360,7 +365,7 @@
                         <iframe id="previewFrame" 
                                 src="/api/preview/{{ doc_set.id }}/coa" 
                                 width="100%" 
-                                height="800"
+                                height="600"
                                 style="border: none;">
                         </iframe>
                     </div>
@@ -372,29 +377,25 @@
 
 <!-- Approval Modal -->
 <div class="modal fade" id="approvalModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-sm">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
+            <div class="modal-header py-2">
+                <h6 class="modal-title">
                     <i class="fas fa-check-circle me-2 text-success"></i>
                     Approve Documents
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Please confirm that you have reviewed all documents and are ready to approve them for final processing.</p>
+                <p class="text-sm">Confirm that you have reviewed all documents and are ready to approve them.</p>
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    Once approved, the documents will be finalized and made available for download.
+                    <small>Once approved, documents will be finalized and ready for download.</small>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-2"></i>Cancel
-                </button>
-                <button type="button" class="btn btn-success" onclick="confirmApproval()">
-                    <i class="fas fa-check me-2"></i>Confirm Approval
-                </button>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="confirmApproval()">Confirm</button>
             </div>
         </div>
     </div>
@@ -409,29 +410,41 @@ document.addEventListener('DOMContentLoaded', function() {
     let updateTimeout = null;
 
     // Initialize edit handlers
-    document.querySelectorAll('.editable-field').forEach(field => {
+    document.querySelectorAll('.editable-field, .editable-cell').forEach(field => {
         field.addEventListener('input', function() {
             const fieldName = this.dataset.field;
             const fieldValue = this.value;
             
-            if (updateTimeout) {
+            if (fieldName && updateTimeout) {
                 clearTimeout(updateTimeout);
             }
             
-            updateTimeout = setTimeout(() => {
-                updateField(fieldName, fieldValue);
-            }, 500);
+            if (fieldName) {
+                updateTimeout = setTimeout(() => {
+                    updateField(fieldName, fieldValue);
+                }, 500);
+            }
         });
     });
 
-    // Initialize specification handlers
-    initializeSpecificationHandlers();
-    
-    // Initialize document field switching - show COA fields by default
-    switchPreview('coa');
+    // Initialize handlers
+    initializeTableHandlers();
+    switchPreview('coa'); // Show COA fields by default
 
-    function initializeSpecificationHandlers() {
-        // Handle specification value changes
+    function initializeTableHandlers() {
+        // Test result handlers
+        document.querySelectorAll('.test-parameter, .test-result').forEach(field => {
+            field.addEventListener('input', function() {
+                if (updateTimeout) {
+                    clearTimeout(updateTimeout);
+                }
+                updateTimeout = setTimeout(() => {
+                    updatePreview();
+                }, 500);
+            });
+        });
+
+        // Specification handlers
         document.querySelectorAll('.spec-value').forEach(field => {
             field.addEventListener('input', function() {
                 const specName = this.dataset.specName;
@@ -447,24 +460,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Handle specification name changes
-        document.querySelectorAll('.spec-name').forEach(field => {
-            field.addEventListener('blur', function() {
-                const originalName = this.dataset.originalName;
-                const newName = this.value.trim();
-                
-                if (originalName !== newName && newName) {
-                    renameSpecification(originalName, newName);
-                }
-            });
-        });
-
-        // Handle remove specification buttons
-        document.querySelectorAll('.remove-spec-btn').forEach(btn => {
+        // Remove button handlers
+        document.querySelectorAll('.remove-test-btn, .remove-spec-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const specItem = this.closest('.specification-item');
-                const specName = specItem.querySelector('.spec-name').value;
-                removeSpecification(specName, specItem);
+                this.closest('tr').remove();
+                updatePreview();
             });
         });
     }
@@ -473,292 +473,160 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(`/api/update-field/${docSetId}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    field_name: fieldName,
-                    field_value: fieldValue
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ field_name: fieldName, field_value: fieldValue })
             });
             
             if (response.ok) {
                 updatePreview();
-            } else {
-                console.error('Failed to update field');
             }
         } catch (error) {
             console.error('Error updating field:', error);
         }
     }
 
-    async function updatePreview() {
-        const previewFrame = document.getElementById('previewFrame');
-        const loadingDiv = document.getElementById('previewLoading');
-        
-        loadingDiv.classList.remove('d-none');
-        previewFrame.style.opacity = '0.3';
-        
-        const timestamp = new Date().getTime();
-        const newSrc = `/api/preview/${docSetId}/${currentPreview}?t=${timestamp}`;
-        
-        previewFrame.onload = function() {
-            loadingDiv.classList.add('d-none');
-            previewFrame.style.opacity = '1';
-        };
-        
-        previewFrame.src = newSrc;
-    }
-
-    function switchPreview(docType) {
-        currentPreview = docType;
-        
-        // Update button states
-        document.querySelectorAll('.btn-group .btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.getElementById(`previewBtn${docType.charAt(0).toUpperCase() + docType.slice(1)}`).classList.add('active');
-        
-        // Update document type indicator
-        const indicator = document.getElementById('currentDocumentType');
-        const documentNames = {
-            'coa': 'COA Fields',
-            'msds': 'MSDS Fields', 
-            'tds': 'TDS Fields'
-        };
-        indicator.textContent = documentNames[docType] || 'Document Fields';
-        
-        // Show/hide appropriate field sections
-        document.querySelectorAll('.document-fields').forEach(section => {
-            section.style.display = 'none';
-        });
-        
-        const targetSection = document.getElementById(`${docType}Fields`);
-        if (targetSection) {
-            targetSection.style.display = 'block';
-        }
-        
-        // Update preview
-        updatePreview();
-    }
-
     async function updateSpecification(specName, specValue) {
         try {
             const response = await fetch(`/api/update-specification/${docSetId}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    spec_name: specName,
-                    spec_value: specValue
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ spec_name: specName, spec_value: specValue })
             });
             
             if (response.ok) {
                 updatePreview();
-            } else {
-                console.error('Failed to update specification');
             }
         } catch (error) {
             console.error('Error updating specification:', error);
         }
     }
 
-    async function renameSpecification(oldName, newName) {
-        try {
-            const response = await fetch(`/api/rename-specification/${docSetId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    old_name: oldName,
-                    new_name: newName
-                })
-            });
-            
-            if (response.ok) {
-                const specItem = document.querySelector(`[data-original-name="${oldName}"]`).closest('.specification-item');
-                specItem.querySelector('.spec-name').dataset.originalName = newName;
-                specItem.querySelector('.spec-value').dataset.specName = newName;
-                updatePreview();
-            } else {
-                console.error('Failed to rename specification');
-            }
-        } catch (error) {
-            console.error('Error renaming specification:', error);
-        }
+    function updatePreview() {
+        const previewFrame = document.getElementById('previewFrame');
+        const loadingDiv = document.getElementById('previewLoading');
+        
+        loadingDiv.classList.remove('d-none');
+        previewFrame.style.opacity = '0.5';
+        
+        const timestamp = new Date().getTime();
+        previewFrame.src = `/api/preview/${docSetId}/${currentPreview}?t=${timestamp}`;
+        
+        previewFrame.onload = function() {
+            loadingDiv.classList.add('d-none');
+            previewFrame.style.opacity = '1';
+        };
     }
 
-    async function removeSpecification(specName, specElement) {
-        try {
-            const response = await fetch(`/api/remove-specification/${docSetId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    spec_name: specName
-                })
-            });
-            
-            if (response.ok) {
-                specElement.remove();
-                updatePreview();
-            } else {
-                console.error('Failed to remove specification');
-            }
-        } catch (error) {
-            console.error('Error removing specification:', error);
-        }
-    }
-
-    function addSpecification() {
-        const container = document.getElementById('specificationsContainer');
-        const newSpecItem = document.createElement('div');
-        newSpecItem.className = 'specification-item';
-        newSpecItem.innerHTML = `
-            <div class="row g-2 mb-2">
-                <div class="col-6">
-                    <label class="form-label small">Name</label>
-                    <input type="text" class="form-control form-control-sm spec-name" 
-                           value="" 
-                           data-original-name=""
-                           placeholder="Specification name">
-                </div>
-                <div class="col-6">
-                    <label class="form-label small">Value</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" class="form-control spec-value" 
-                               value=""
-                               data-spec-name=""
-                               placeholder="Specification value">
-                        <button type="button" class="btn btn-outline-danger remove-spec-btn">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
+    function switchPreview(docType) {
+        currentPreview = docType;
         
-        container.appendChild(newSpecItem);
+        // Update button states
+        document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`previewBtn${docType.charAt(0).toUpperCase() + docType.slice(1)}`).classList.add('active');
         
-        // Initialize handlers for new specification
-        const specName = newSpecItem.querySelector('.spec-name');
-        const specValue = newSpecItem.querySelector('.spec-value');
-        const removeBtn = newSpecItem.querySelector('.remove-spec-btn');
+        // Update type indicator
+        const indicator = document.getElementById('currentDocumentType');
+        const documentNames = { 'coa': 'COA Fields', 'msds': 'MSDS Fields', 'tds': 'TDS Fields' };
+        indicator.textContent = documentNames[docType] || 'Document Fields';
         
-        // Handle specification name changes
-        specName.addEventListener('blur', function() {
-            const name = this.value.trim();
-            if (name) {
-                this.dataset.originalName = name;
-                specValue.dataset.specName = name;
-                updateSpecification(name, specValue.value);
-            }
-        });
+        // Show/hide field sections
+        document.querySelectorAll('.document-fields').forEach(section => section.style.display = 'none');
+        const targetSection = document.getElementById(`${docType}Fields`);
+        if (targetSection) targetSection.style.display = 'block';
         
-        // Handle specification value changes
-        specValue.addEventListener('input', function() {
-            const specName = this.dataset.specName;
-            const specValue = this.value;
-            
-            if (specName) {
-                if (updateTimeout) {
-                    clearTimeout(updateTimeout);
-                }
-                
-                updateTimeout = setTimeout(() => {
-                    updateSpecification(specName, specValue);
-                }, 500);
-            }
-        });
-        
-        // Handle remove button
-        removeBtn.addEventListener('click', function() {
-            const nameValue = specName.value.trim();
-            if (nameValue) {
-                removeSpecification(nameValue, newSpecItem);
-            } else {
-                newSpecItem.remove();
-            }
-        });
-        
-        // Focus on the name input
-        specName.focus();
+        updatePreview();
     }
 
     function addTestResult() {
-        const container = document.getElementById('testResultsContainer');
-        const newTestItem = document.createElement('div');
-        newTestItem.className = 'test-result-item';
-        newTestItem.innerHTML = `
-            <div class="row g-2 mb-2">
-                <div class="col-6">
-                    <label class="form-label small">Parameter</label>
-                    <input type="text" class="form-control form-control-sm test-parameter" 
-                           value="" 
-                           placeholder="Test parameter">
-                </div>
-                <div class="col-6">
-                    <label class="form-label small">Result</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" class="form-control test-result" 
-                               value=""
-                               placeholder="Test result">
-                        <button type="button" class="btn btn-outline-danger remove-test-btn">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+        const tbody = document.querySelector('#testResultsTable tbody');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>
+                <input type="text" class="form-control form-control-sm editable-cell test-parameter border-0" 
+                       placeholder="Parameter name">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm editable-cell test-result border-0" 
+                       placeholder="Result">
+            </td>
+            <td class="table-actions">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-test-btn">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
         `;
+        tbody.appendChild(newRow);
         
-        container.appendChild(newTestItem);
-        
-        // Initialize handlers for new test result
-        const testParameter = newTestItem.querySelector('.test-parameter');
-        const testResult = newTestItem.querySelector('.test-result');
-        const removeBtn = newTestItem.querySelector('.remove-test-btn');
-        
-        // Handle remove button
-        removeBtn.addEventListener('click', function() {
-            newTestItem.remove();
-            updatePreview();
-        });
-        
-        // Handle field changes
-        [testParameter, testResult].forEach(field => {
-            field.addEventListener('input', function() {
-                if (updateTimeout) {
-                    clearTimeout(updateTimeout);
-                }
-                
-                updateTimeout = setTimeout(() => {
-                    updatePreview();
-                }, 500);
+        // Initialize handlers for new row
+        newRow.querySelectorAll('.test-parameter, .test-result').forEach(field => {
+            field.addEventListener('input', () => {
+                if (updateTimeout) clearTimeout(updateTimeout);
+                updateTimeout = setTimeout(() => updatePreview(), 500);
             });
         });
         
-        // Focus on the parameter input
-        testParameter.focus();
+        newRow.querySelector('.remove-test-btn').addEventListener('click', function() {
+            newRow.remove();
+            updatePreview();
+        });
+        
+        newRow.querySelector('.test-parameter').focus();
     }
 
-    window.approveDocuments = function() {
-        const approvalModal = new bootstrap.Modal(document.getElementById('approvalModal'));
-        approvalModal.show();
+    function addSpecification() {
+        const tbody = document.querySelector('#specificationsTable tbody');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>
+                <input type="text" class="form-control form-control-sm editable-cell spec-name border-0" 
+                       placeholder="Specification name">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm editable-cell spec-value border-0" 
+                       placeholder="Value">
+            </td>
+            <td class="table-actions">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-spec-btn">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+        
+        // Initialize handlers
+        const specName = newRow.querySelector('.spec-name');
+        const specValue = newRow.querySelector('.spec-value');
+        
+        specValue.addEventListener('input', function() {
+            const name = specName.value.trim();
+            const value = this.value;
+            if (name && updateTimeout) clearTimeout(updateTimeout);
+            if (name) {
+                updateTimeout = setTimeout(() => updateSpecification(name, value), 500);
+            }
+        });
+        
+        newRow.querySelector('.remove-spec-btn').addEventListener('click', function() {
+            newRow.remove();
+            updatePreview();
+        });
+        
+        specName.focus();
     }
 
-    window.confirmApproval = function() {
-        // Handle approval logic here
-        window.location.href = '/results/' + docSetId;
-    }
-
-    // Make functions globally available
+    // Global functions
     window.switchPreview = switchPreview;
-    window.addSpecification = addSpecification;
     window.addTestResult = addTestResult;
+    window.addSpecification = addSpecification;
+    
+    window.approveDocuments = function() {
+        const modal = new bootstrap.Modal(document.getElementById('approvalModal'));
+        modal.show();
+    };
+    
+    window.confirmApproval = function() {
+        window.location.href = `/results/${docSetId}`;
+    };
 });
 </script>
 {% endblock %}

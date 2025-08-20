@@ -3,27 +3,27 @@
 {% block title %}Process Documents - Chemical Document Pro{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-4">
     <!-- Page Header -->
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold mb-3">Process Chemical Documents</h1>
-        <p class="lead text-muted mb-0">Upload your supplier documents and transform them into professional, branded versions</p>
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-2">Process Chemical Documents</h2>
+        <p class="text-muted mb-0">Upload supplier documents and transform them into professional, branded versions</p>
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-10">
             <!-- Main Upload Form -->
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title">
+                    <h5 class="card-title">
                         <i class="fas fa-upload me-2 text-primary"></i>
                         Document Upload
-                    </h4>
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data" id="uploadForm">
                         <!-- Product Name Input -->
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="company_product_name" class="form-label">
                                 Product Name <span class="text-danger">*</span>
                             </label>
@@ -37,7 +37,7 @@
                         </div>
 
                         <!-- Document Upload Areas -->
-                        <div class="row g-4 mb-4">
+                        <div class="row g-3 mb-4">
                             <!-- COA Upload -->
                             <div class="col-md-4">
                                 <label class="form-label d-flex align-items-center">
@@ -52,8 +52,8 @@
                                            accept=".pdf" 
                                            required>
                                     <div class="upload-placeholder">
-                                        <i class="fas fa-cloud-upload-alt fa-2x mb-3"></i>
-                                        <p class="mb-0 fw-medium">Drop COA file here</p>
+                                        <i class="fas fa-cloud-upload-alt mb-2"></i>
+                                        <p class="mb-1 fw-medium">Drop COA file here</p>
                                         <small class="text-muted">or click to browse</small>
                                     </div>
                                     <div class="file-info d-none">
@@ -80,8 +80,8 @@
                                            accept=".pdf" 
                                            required>
                                     <div class="upload-placeholder">
-                                        <i class="fas fa-cloud-upload-alt fa-2x mb-3"></i>
-                                        <p class="mb-0 fw-medium">Drop MSDS file here</p>
+                                        <i class="fas fa-cloud-upload-alt mb-2"></i>
+                                        <p class="mb-1 fw-medium">Drop MSDS file here</p>
                                         <small class="text-muted">or click to browse</small>
                                     </div>
                                     <div class="file-info d-none">
@@ -108,8 +108,8 @@
                                            accept=".pdf" 
                                            required>
                                     <div class="upload-placeholder">
-                                        <i class="fas fa-cloud-upload-alt fa-2x mb-3"></i>
-                                        <p class="mb-0 fw-medium">Drop TDS file here</p>
+                                        <i class="fas fa-cloud-upload-alt mb-2"></i>
+                                        <p class="mb-1 fw-medium">Drop TDS file here</p>
                                         <small class="text-muted">or click to browse</small>
                                     </div>
                                     <div class="file-info d-none">
@@ -125,13 +125,13 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex justify-content-between align-items-center">
-                            <a href="{{ url_for('index') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>
-                                Back to Home
+                            <a href="{{ url_for('processed_documents') }}" class="btn btn-secondary">
+                                <i class="fas fa-folder-open me-2"></i>
+                                View Processed
                             </a>
                             <button type="submit" class="btn btn-primary" id="submitBtn">
                                 <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-                                <i class="fas fa-magic me-2"></i>
+                                <i class="fas fa-cogs me-2"></i>
                                 Process Documents
                             </button>
                         </div>
@@ -139,61 +139,45 @@
                 </div>
             </div>
 
-            <!-- Requirements Card -->
-            <div class="card mt-4">
+            <!-- Requirements Card - More Compact -->
+            <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">
+                    <h6 class="card-title">
                         <i class="fas fa-info-circle me-2 text-info"></i>
-                        Requirements & Guidelines
-                    </h5>
+                        Requirements
+                    </h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6 class="fw-semibold mb-3">File Requirements</h6>
                             <div class="d-flex align-items-start mb-2">
-                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
-                                <div>
+                                <i class="fas fa-check text-success me-2 mt-1" style="font-size: 0.75rem;"></i>
+                                <div class="text-sm">
                                     <div class="fw-medium">PDF Format Only</div>
-                                    <small class="text-muted">All files must be in PDF format</small>
+                                    <small class="text-muted">All files must be PDF format</small>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-2">
-                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
-                                <div>
-                                    <div class="fw-medium">Size Limit: 16MB</div>
+                                <i class="fas fa-check text-success me-2 mt-1" style="font-size: 0.75rem;"></i>
+                                <div class="text-sm">
+                                    <div class="fw-medium">16MB Size Limit</div>
                                     <small class="text-muted">Maximum file size per document</small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
-                                <div>
-                                    <div class="fw-medium">All Three Required</div>
-                                    <small class="text-muted">COA, MSDS, and TDS documents</small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="fw-semibold mb-3">Content Quality</h6>
                             <div class="d-flex align-items-start mb-2">
-                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
-                                <div>
-                                    <div class="fw-medium">Structured Data</div>
-                                    <small class="text-muted">Documents with clear tables and specifications</small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-start mb-2">
-                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
-                                <div>
-                                    <div class="fw-medium">Readable Text</div>
-                                    <small class="text-muted">Clear, high-quality scanned documents</small>
+                                <i class="fas fa-check text-success me-2 mt-1" style="font-size: 0.75rem;"></i>
+                                <div class="text-sm">
+                                    <div class="fw-medium">All Three Required</div>
+                                    <small class="text-muted">COA, MSDS, and TDS documents</small>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start">
-                                <i class="fas fa-check text-success me-3 mt-1" style="font-size: 0.875rem;"></i>
-                                <div>
-                                    <div class="fw-medium">Complete Information</div>
-                                    <small class="text-muted">All necessary chemical and safety data</small>
+                                <i class="fas fa-check text-success me-2 mt-1" style="font-size: 0.75rem;"></i>
+                                <div class="text-sm">
+                                    <div class="fw-medium">Structured Data</div>
+                                    <small class="text-muted">Clear tables and specifications</small>
                                 </div>
                             </div>
                         </div>
@@ -203,27 +187,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-// Enhanced upload functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadForm = document.getElementById('uploadForm');
-    const submitBtn = document.getElementById('submitBtn');
-    
-    // Handle form submission
-    uploadForm.addEventListener('submit', function(e) {
-        const spinner = submitBtn.querySelector('.spinner-border');
-        const icon = submitBtn.querySelector('.fas');
-        
-        // Show loading state
-        spinner.classList.remove('d-none');
-        icon.classList.add('d-none');
-        submitBtn.disabled = true;
-    });
-    
-    // File upload enhancements are handled by existing upload.js
-});
-</script>
 {% endblock %}
