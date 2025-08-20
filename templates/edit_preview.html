@@ -132,6 +132,108 @@
                                    value="{% if doc_set.expiry_date %}{{ doc_set.expiry_date.strftime('%Y-%m-%d') }}{% endif %}">
                         </div>
 
+                        <!-- TDS Information -->
+                        <h6 class="text-muted mb-3 mt-4">Technical Data</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Recommended Use Level</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="recommended_use_level" 
+                                   value="{{ extracted_data.get('recommended_use_level', '') }}"
+                                   placeholder="Enter recommended use level">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Use Method</label>
+                            <textarea class="form-control editable-field" 
+                                      data-field="use_method" 
+                                      rows="2"
+                                      placeholder="Enter use method">{{ extracted_data.get('use_method', '') }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Storage Conditions</label>
+                            <textarea class="form-control editable-field" 
+                                      data-field="storage_conditions" 
+                                      rows="2"
+                                      placeholder="Enter storage conditions">{{ extracted_data.get('storage_conditions', '') }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Shelf Life</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="shelf_life" 
+                                   value="{{ extracted_data.get('shelf_life', '') }}"
+                                   placeholder="Enter shelf life">
+                        </div>
+
+                        <!-- Physical Properties -->
+                        <h6 class="text-muted mb-3 mt-4">Physical Properties</h6>
+                        
+                        {% set physical_props = extracted_data.get('physical_properties', {}) %}
+                        <div class="mb-3">
+                            <label class="form-label">Appearance</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="physical_properties.appearance" 
+                                   value="{{ physical_props.get('appearance', '') }}"
+                                   placeholder="Enter appearance">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Solubility</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="physical_properties.solubility" 
+                                   value="{{ physical_props.get('solubility', '') }}"
+                                   placeholder="Enter solubility">
+                        </div>
+
+                        <!-- Safety Data -->
+                        <h6 class="text-muted mb-3 mt-4">Safety Data</h6>
+                        
+                        {% set safety_data = extracted_data.get('safety_data', {}) %}
+                        <div class="mb-3">
+                            <label class="form-label">pH Value</label>
+                            <input type="text" class="form-control editable-field" 
+                                   data-field="safety_data.ph" 
+                                   value="{{ safety_data.get('ph', '') }}"
+                                   placeholder="Enter pH value">
+                        </div>
+
+                        <!-- Specifications -->
+                        <h6 class="text-muted mb-3 mt-4">Specifications</h6>
+                        
+                        <div id="specificationsContainer">
+                            {% set specs = extracted_data.get('specifications', {}) %}
+                            {% for spec_name, spec_value in specs.items() %}
+                            <div class="specification-item mb-3 p-3 border rounded">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label small">Specification Name</label>
+                                        <input type="text" class="form-control form-control-sm spec-name" 
+                                               value="{{ spec_name }}" 
+                                               data-original-name="{{ spec_name }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small">Specification Value</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control form-control-sm spec-value" 
+                                                   value="{{ spec_value }}"
+                                                   data-spec-name="{{ spec_name }}">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-spec-btn">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <button type="button" class="btn btn-outline-primary btn-sm mb-4" onclick="addSpecification()">
+                            <i class="fas fa-plus me-1"></i>
+                            Add Specification
+                        </button>
+
                         <!-- Test Results Section -->
                         <h6 class="text-muted mb-3 mt-4">Test Results</h6>
                         
@@ -276,6 +378,50 @@
         });
     });
 
+    // Initialize specification handlers
+    initializeSpecificationHandlers();
+
+    function initializeSpecificationHandlers() {
+        // Handle specification value changes
+        document.querySelectorAll('.spec-value').forEach(field => {
+            field.addEventListener('input', function() {
+                const specName = this.dataset.specName;
+                const specValue = this.value;
+                
+                // Clear existing timeout
+                if (updateTimeout) {
+                    clearTimeout(updateTimeout);
+                }
+                
+                // Set new timeout for 500ms after user stops typing
+                updateTimeout = setTimeout(() => {
+                    updateSpecification(specName, specValue);
+                }, 500);
+            });
+        });
+
+        // Handle specification name changes
+        document.querySelectorAll('.spec-name').forEach(field => {
+            field.addEventListener('blur', function() {
+                const originalName = this.dataset.originalName;
+                const newName = this.value.trim();
+                
+                if (originalName !== newName && newName) {
+                    renameSpecification(originalName, newName);
+                }
+            });
+        });
+
+        // Handle remove specification buttons
+        document.querySelectorAll('.remove-spec-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const specItem = this.closest('.specification-item');
+                const specName = specItem.querySelector('.spec-name').value;
+                removeSpecification(specName, specItem);
+            });
+        });
+    }
+
     async function updateField(fieldName, fieldValue) {
         try {
             const response = await fetch(`/api/update-field/${docSetId}`, {
@@ -331,6 +477,156 @@
         
         // Update preview
         updatePreview();
+    }
+
+    async function updateSpecification(specName, specValue) {
+        try {
+            const response = await fetch(`/api/update-specification/${docSetId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    spec_name: specName,
+                    spec_value: specValue
+                })
+            });
+            
+            if (response.ok) {
+                updatePreview();
+            } else {
+                console.error('Failed to update specification');
+            }
+        } catch (error) {
+            console.error('Error updating specification:', error);
+        }
+    }
+
+    async function renameSpecification(oldName, newName) {
+        try {
+            const response = await fetch(`/api/rename-specification/${docSetId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    old_name: oldName,
+                    new_name: newName
+                })
+            });
+            
+            if (response.ok) {
+                // Update the data attributes
+                const specItem = document.querySelector(`[data-original-name="${oldName}"]`).closest('.specification-item');
+                specItem.querySelector('.spec-name').dataset.originalName = newName;
+                specItem.querySelector('.spec-value').dataset.specName = newName;
+                updatePreview();
+            } else {
+                console.error('Failed to rename specification');
+            }
+        } catch (error) {
+            console.error('Error renaming specification:', error);
+        }
+    }
+
+    async function removeSpecification(specName, specElement) {
+        try {
+            const response = await fetch(`/api/remove-specification/${docSetId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    spec_name: specName
+                })
+            });
+            
+            if (response.ok) {
+                specElement.remove();
+                updatePreview();
+            } else {
+                console.error('Failed to remove specification');
+            }
+        } catch (error) {
+            console.error('Error removing specification:', error);
+        }
+    }
+
+    function addSpecification() {
+        const container = document.getElementById('specificationsContainer');
+        const newSpecItem = document.createElement('div');
+        newSpecItem.className = 'specification-item mb-3 p-3 border rounded';
+        newSpecItem.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label small">Specification Name</label>
+                    <input type="text" class="form-control form-control-sm spec-name" 
+                           value="" 
+                           data-original-name=""
+                           placeholder="Enter specification name">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small">Specification Value</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm spec-value" 
+                               value=""
+                               data-spec-name=""
+                               placeholder="Enter specification value">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-spec-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(newSpecItem);
+        
+        // Initialize handlers for new specification
+        const specName = newSpecItem.querySelector('.spec-name');
+        const specValue = newSpecItem.querySelector('.spec-value');
+        const removeBtn = newSpecItem.querySelector('.remove-spec-btn');
+        
+        // Handle specification name changes
+        specName.addEventListener('blur', function() {
+            const name = this.value.trim();
+            if (name) {
+                this.dataset.originalName = name;
+                specValue.dataset.specName = name;
+                updateSpecification(name, specValue.value);
+            }
+        });
+        
+        // Handle specification value changes
+        specValue.addEventListener('input', function() {
+            const specName = this.dataset.specName;
+            const specValue = this.value;
+            
+            if (specName) {
+                // Clear existing timeout
+                if (updateTimeout) {
+                    clearTimeout(updateTimeout);
+                }
+                
+                // Set new timeout for 500ms after user stops typing
+                updateTimeout = setTimeout(() => {
+                    updateSpecification(specName, specValue);
+                }, 500);
+            }
+        });
+        
+        // Handle remove button
+        removeBtn.addEventListener('click', function() {
+            const nameValue = specName.value.trim();
+            if (nameValue) {
+                removeSpecification(nameValue, newSpecItem);
+            } else {
+                newSpecItem.remove();
+            }
+        });
+        
+        // Focus on the name input
+        specName.focus();
     }
 
     function approveDocuments() {

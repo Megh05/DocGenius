@@ -148,19 +148,28 @@ def update_field(doc_set_id):
     field_name = data.get('field_name')
     field_value = data.get('field_value')
     
-    # Update the field in the document set
+    # Get extracted data
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    
+    # Update the field in the document set and extracted_data
     if field_name == 'company_product_name':
         doc_set.company_product_name = field_value
+        extracted_data[field_name] = field_value
     elif field_name == 'inci_name':
         doc_set.inci_name = field_value
+        extracted_data[field_name] = field_value
     elif field_name == 'cas_number':
         doc_set.cas_number = field_value
+        extracted_data[field_name] = field_value
     elif field_name == 'molecular_formula':
         doc_set.molecular_formula = field_value
+        extracted_data[field_name] = field_value
     elif field_name == 'batch_number':
         doc_set.batch_number = field_value
+        extracted_data[field_name] = field_value
     elif field_name == 'supplier_name':
         doc_set.supplier_name = field_value
+        extracted_data[field_name] = field_value
     elif field_name in ['manufacturing_date', 'expiry_date']:
         try:
             date_value = datetime.strptime(field_value, '%Y-%m-%d').date()
@@ -168,17 +177,118 @@ def update_field(doc_set_id):
                 doc_set.manufacturing_date = date_value
             else:
                 doc_set.expiry_date = date_value
+            extracted_data[field_name] = field_value
         except ValueError:
             return jsonify({'error': 'Invalid date format'}), 400
+    elif field_name in ['recommended_use_level', 'use_method', 'storage_conditions', 'shelf_life']:
+        # Direct fields in extracted_data
+        extracted_data[field_name] = field_value
+    elif field_name.startswith('physical_properties.'):
+        # Handle nested physical properties
+        property_name = field_name.split('.')[1]
+        if 'physical_properties' not in extracted_data:
+            extracted_data['physical_properties'] = {}
+        extracted_data['physical_properties'][property_name] = field_value
+    elif field_name.startswith('safety_data.'):
+        # Handle nested safety data
+        safety_name = field_name.split('.')[1]
+        if 'safety_data' not in extracted_data:
+            extracted_data['safety_data'] = {}
+        extracted_data['safety_data'][safety_name] = field_value
+    else:
+        # Generic field update for any other fields
+        extracted_data[field_name] = field_value
     
     # Update extracted_data JSON
-    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
-    extracted_data[field_name] = field_value
     doc_set.extracted_data = json.dumps(extracted_data)
     
     db.session.commit()
     
     return jsonify({'success': True, 'field_name': field_name, 'field_value': field_value})
+
+@app.route('/api/update-specification/<int:doc_set_id>', methods=['POST'])
+def update_specification(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    data = request.get_json()
+    
+    spec_name = data.get('spec_name')
+    spec_value = data.get('spec_value')
+    
+    if not spec_name:
+        return jsonify({'error': 'Specification name is required'}), 400
+    
+    # Get extracted data
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    
+    # Update specification
+    if 'specifications' not in extracted_data:
+        extracted_data['specifications'] = {}
+    
+    extracted_data['specifications'][spec_name] = spec_value
+    doc_set.extracted_data = json.dumps(extracted_data)
+    
+    db.session.commit()
+    
+    return jsonify({'success': True, 'spec_name': spec_name, 'spec_value': spec_value})
+
+@app.route('/api/rename-specification/<int:doc_set_id>', methods=['POST'])
+def rename_specification(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    data = request.get_json()
+    
+    old_name = data.get('old_name')
+    new_name = data.get('new_name')
+    
+    if not old_name or not new_name:
+        return jsonify({'error': 'Both old and new names are required'}), 400
+    
+    # Get extracted data
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    
+    if 'specifications' not in extracted_data:
+        return jsonify({'error': 'No specifications found'}), 404
+    
+    if old_name not in extracted_data['specifications']:
+        return jsonify({'error': 'Specification not found'}), 404
+    
+    # Move the specification to new name
+    spec_value = extracted_data['specifications'][old_name]
+    del extracted_data['specifications'][old_name]
+    extracted_data['specifications'][new_name] = spec_value
+    
+    doc_set.extracted_data = json.dumps(extracted_data)
+    
+    db.session.commit()
+    
+    return jsonify({'success': True, 'old_name': old_name, 'new_name': new_name})
+
+@app.route('/api/remove-specification/<int:doc_set_id>', methods=['POST'])
+def remove_specification(doc_set_id):
+    doc_set = DocumentSet.query.get_or_404(doc_set_id)
+    data = request.get_json()
+    
+    spec_name = data.get('spec_name')
+    
+    if not spec_name:
+        return jsonify({'error': 'Specification name is required'}), 400
+    
+    # Get extracted data
+    extracted_data = json.loads(doc_set.extracted_data) if doc_set.extracted_data else {}
+    
+    if 'specifications' not in extracted_data:
+        return jsonify({'error': 'No specifications found'}), 404
+    
+    if spec_name not in extracted_data['specifications']:
+        return jsonify({'error': 'Specification not found'}), 404
+    
+    # Remove the specification
+    del extracted_data['specifications'][spec_name]
+    
+    doc_set.extracted_data = json.dumps(extracted_data)
+    
+    db.session.commit()
+    
+    return jsonify({'success': True, 'spec_name': spec_name})
 
 @app.route('/api/preview/<int:doc_set_id>/<doc_type>')
 def preview_document(doc_set_id, doc_type):
